@@ -39,9 +39,9 @@ The core idea of pushdown control flow analysis is to mimic call/return flow as 
 Fortunately, XXX invented abstracting abstract machine (AAM) as a configurable framework for constructing abstract interpreters in the CESK abstract machine style. AAM not only allocate values in the store (like original \textit{k}-CFA does), but also represents control flow as store-allocated continuations. In AAM, each CESK state does not directly carry continuation, but a continuation address refers to a set of continuations in the store. Merging serval continuations in one continuation address achieves approximation of control flows. Meanwhile, AAM brings two benefits to control flow analysis. On the one hand, it makes soundness of abstract interpreters easily acquired because values and continuations are both in the store and the store size is fixed. On the other hand, store-allocated traditional separates original context-sensitivity (polyvariant values) strategies from call/return match techniques.
 AAC and P4F both based on AAM convert call/return match problem to continuation address allocation strategy. AAC requires expensive overhead, $O(n^9)$, which puts too much information in the continuation addresses. Then P4F tries to reduce the complexity of AAC, but it is not useful for monovariant analysis.
 
-In this paper, we introduce a new method to address the call/return mismatch problem that is as simple as P4F and AAC, and it can provide perfect call/return match for monovariant and polyvariant control flow analysis. The new method puts a \emph{execution history environment} into continuation address with callee's function boy, so we name it \textit{h}-CFA . The execution history environments can be regarded as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, execution history can automatically stop growth for recursive calls, and the work list algorithm will be responsible for finding the fixed-point of recursive computation.
+In this paper, we introduce a new method to address the call/return mismatch problem that is as simple as P4F and AAC to implement, and it can provide perfect call/return match for monovariant and polyvariant control flow analysis. The new method puts a \emph{execution history environment} into continuation address with callee's function boy, so we name it \textit{h}-CFA\@. The execution history environments can be regarded as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, execution history can automatically stop growth for recursive calls, and the work list algorithm will be responsible for finding the fixed-point of recursive computation. Furthermore, we claim that for call/return match (polyvariant continuations) finite length of \textit{k} is enough, which can reaches n (size of input program) in worst cases.
 
-
+We implementeded P4F, PDCFA, PDCFA with GC and \textit{h}-CFA for Scheme, and generated state transition graphs (Figure~\ref{fig:state-graphs}) of these four algorithms for a text program in Figure~\ref{fig:fib}.
 
 \begin{figure}[t]
 \small
@@ -64,7 +64,7 @@ In this paper, we introduce a new method to address the call/return mismatch pro
 %}
 &
 %\raisebox{1ex-\height}{
-\includegraphics[height=3in]{ncfa.pdf}
+\includegraphics[height=3in]{hcfa.pdf}
 %}
 \\
 (c) PDCFA with Abstract Garbage Collection
@@ -73,45 +73,180 @@ In this paper, we introduce a new method to address the call/return mismatch pro
 \end{tabular}
 \end{center}
 \caption{
-(a) shows
+State transition graphs of: (1) P4F (pushdown control flow analysis for free) with 1-CFA (1-call-site sensitive);
+(2) PDCFA (pushdown control flow analysis); (3) PDCFA with abstract garbage collection; (4) \textit{h}-CFA\@.
 }
 \label{fig:state-graphs}
 \end{figure}
 
+\begin{figure}
+  \lstset{language=Lisp}
+  \begin{lstlisting}
+  (define (fib n)
+    (if (< n 3)
+        1
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+  (define a (fib 10))
+  (define b (fib 20))
+  (define c (fib 100))
+  \end{lstlisting}
+\caption{
+The simple example invokes recursive fibonacci function three times on its nontrivial condition.
+We use the example to compare call/return match strengths of four pushdown control flow analysis algorithms.
+}
+\label{fig:fib}
+\end{figure}
+
+\subsection{Overview}
+\label{sub:Overview}
+
+
+\subsection{Contributions}
+\label{sub:Contributions}
 
 \section{Pushdown Control Flow Analysis in Abstracting Abstract Machines}
 \label{sec:Pushdown Control Flow Analysis in Abstracting Abstract Machines}
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
 Before section 4, we will describe algorithms on ANF style lambda calculus.
-\[\begin{aligned}
-e \in Exp ::= (let ((x (f e))) e) \\
-            | e
+\[
+\begin{aligned}
+\label{eq:bnf}
+e \in Exp ::= {}& (let\ ((x\ (f\ ae)))\ e) {} \\
+&|\ ae
 \end{aligned}
 \]
 \[
 \tag{atomic expressions}
-f, e \in AExp ::= x\ |\ lambda
+f, ae \in AExp ::= x\ |\ lambda
 \]
 \[
 \tag{lambda abstractions}
-lambda \in Lambda ::= (\lambda (x) e)
+lambda \in Lambda ::= (\lambda\ (x)\ e)
 \]
 \[
 \tag{variables}
 x,y \in Var \ is\ a\ set\ of\ identifiers
 \]
 
-This section reviews AAM .
+This section reviews AAM\@.
+
+Definitions:
+
+\[
+\tag{states}
+\widetilde{\varsigma}\in\widetilde{\Sigma} \triangleq Exp \times \widetilde{Env} \times \widetilde{Store}
+\times \widetilde{KStore} \times \widetilde{KAddr}
+\]
+\[
+\tag{environments}
+\widetilde{\rho} \in \widetilde{Env} \triangleq Var \rightharpoonup \widetilde{Addr}
+\]
+\[
+\tag{srores}
+\widetilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \to \widetilde{Value}
+\]
+\[
+\tag{abstract values}
+\widetilde{v} \in \widetilde{Value} \triangleq \mathcal{P}(\widetilde{Closure})
+\]
+\[
+\tag{closures}
+\widetilde{clo} \in \widetilde{Closure} \triangleq Lambda \times \widetilde{Env}
+\]
+\[
+\tag{continuation stores}
+\widetilde{\sigma_k} \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \to  \widetilde{Kont}
+\]
+\[
+\tag{abstract continuations}
+\widetilde{k} \in  \widetilde{Kont} \triangleq  \mathcal{P}(\widetilde{Frame})
+\]
+\[
+\tag{stack frames}
+\widetilde{\phi} \in  \widetilde{Frame} \triangleq Var \times Exp \times  \widetilde{Env} \times  \widetilde{KAddr}
+\]
+\[
+\tag{value addresses}
+\widetilde{a} \in \widetilde{Addr} \ is\ a\ finite\ set
+\]
+\[
+\tag{continuation addresses}
+\widetilde{a_k} \in \widetilde{KAddr} \ is\ a\ finite\ set
+\]
+
+Abstract Semantics:
+
+alloc:
+\[
+\widetilde{alloc} (x, \widetilde{\varsigma}) = x
+\]
+
+calls:
+\[
+\overbrace{
+\big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
+}^{\widetilde{\varsigma}}
+\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}\textprime, \widetilde{a_k}\textprime \big), where
+\]
+\[
+\big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
+\]
+\[
+\widetilde{\rho}\textprime = \widetilde{\rho}_{\lambda}[x \to \widetilde{a}]
+\]
+\[
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\]
+\[
+\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
+\]
+\[
+\widetilde{\sigma_k}\textprime = \widetilde{\sigma_k} \sqcup [\widetilde{a_k}\textprime \to {(y, e, \widetilde{\rho}, \widetilde{a_k})}]
+\]
+\[
+\widetilde{a_k}\textprime = \widetilde{kalloc}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
+\]
+
+
+returns:
+\[
+\overbrace{
+(ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k})
+}^{\widetilde{\varsigma}}
+\leadsto (e, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}, \widetilde{a_k}\textprime, \widetilde{h}\textprime)
+\]
+\[
+(x, e, \widetilde{\rho_k}, \widetilde{a_k}\textprime) \in \widetilde{\sigma_k}(\widetilde{a_k})
+\]
+\[
+\widetilde{\rho}\textprime = \widetilde{\rho_k}[x \to \widetilde{a}]
+\]
+\[
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\]
+\[
+\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
+\]
+
+\subsection{Store-widenning}
+\label{sub:Store-widenning}
+
+
 \subsection{A defeat of AAM}
 \label{sub:A defeat of AAM}
-Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return match orthogonal from context-sensitivity, original ``kalloc'' functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return match (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple ``kalloc'' function:
+Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return match orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return match (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
 
 \[
 \widetilde{kalloc_{P4F}} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{\rho}\textprime)
 \]
 
-P4F adepts
+Continuation addresses are represented by $(e\textprime, \widetilde{\rho}\textprime)$ that the most obvious change is it packing callee's function body with ``target environment'' ($\widetilde{\rho}\textprime$) of current application.
+Firstly, environments ($Var \rightharpoonup \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvatiant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into the value addresses. Thus, P4F can be regarded as an adaptive pushdown control flow analysis algorithm that automatically achieves finite call/return match support from values' polyvatiant strategy (implementing of $\widetilde{alloc}$ function).
+Secondly, P4F also reveals a significant fact that why original AAM misses call/return flow match. One of the most important contributions of AAM is that separates analysis context requirement from termination of abstract interpreters. All things (values and continuations) allocated in the store make termination of abstract interpreters easily reached because any implementation of $\widetilde{alloc}$ is sound.
+However, the original $\widetilde{kalloc}$ function that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flow. P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts. Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis result.
+
 \section{The Essence of Pushdown Control Flow Analysis}
 \label{sec:The Essence of Pushdown Control Flow Analysis}
 \subsection{Program Execution History}
@@ -225,7 +360,7 @@ returns:
 
 \subsection{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-In this section, we use illustrations to show the principles of \textit{h}-CFA.
+In this section, we use illustrations to show the principles of \textit{h}-CFA\@.
 \section{Static Analysis of JavaScript}
 \label{sec:Static Analysis of JavaScript}
 \subsection{Abstract Garbage Collection as Stack Filtering}
@@ -233,5 +368,5 @@ In this section, we use illustrations to show the principles of \textit{h}-CFA.
 In practice, call/return perfect match working with monovariant analysis is useless.
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:Abstract Garbage Collection as Popping Call Stack Frames}
-In this section, we show how to give up execution history and apply our theory for direct-style AST.
+In this section, we show how to give up execution history and apply our theory for direct-style AST\@.
 \end{document}
