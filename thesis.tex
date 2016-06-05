@@ -319,8 +319,8 @@ Calls:
 \[
 \overbrace{
 \big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h} \big)
-}^{\widetilde{\varsigma}}
-\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}\textprime, \widetilde{a_k}\textprime, \widetilde{h}\textprime \big), where
+}^{\widetilde{\varsigma^H}}
+\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k^H}\textprime, \widetilde{a_k^H}\textprime, \widetilde{h}\textprime \big), where
 \]
 \[
 \big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
@@ -332,13 +332,13 @@ Calls:
 \widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
-\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
+\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
-\widetilde{\sigma_k}\textprime = \widetilde{\sigma_k} \sqcup [\widetilde{a_k}\textprime \to {(y, e, \widetilde{\rho}, \widetilde{h}, \widetilde{a_k})}]
+\widetilde{\sigma_k^H}\textprime = \widetilde{\sigma_k^H} \sqcup [\widetilde{a_k^H}\textprime \to {(y, e, \widetilde{\rho}, \widetilde{h}, \widetilde{a_k^H})}]
 \]
 \[
-\widetilde{a_k}\textprime = \widetilde{kalloc}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
+\widetilde{a_k^H}\textprime = \widetilde{kalloc_h}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
 \]
 \[
 \widetilde{h}\textprime = \widetilde{h} \cup \widetilde{\rho}  \cup \widetilde{\rho}\textprime
@@ -348,11 +348,11 @@ Returns:
 \[
 \overbrace{
 (ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h})
-}^{\widetilde{\varsigma}}
-\leadsto (e, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}, \widetilde{a_k}\textprime, \widetilde{h}\textprime)
+}^{\widetilde{\varsigma^H}}
+\leadsto (e, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k^H}, \widetilde{a_k^H}\textprime, \widetilde{h}\textprime)
 \]
 \[
-(x, e, \widetilde{\rho_k}, \widetilde{h_k}, \widetilde{a_k}\textprime) \in \widetilde{\sigma_k}(\widetilde{a_k})
+(x, e, \widetilde{\rho_k}, \widetilde{h_k}, \widetilde{a_k^H}\textprime) \in \widetilde{\sigma_k^H}(\widetilde{a_k^H})
 \]
 \[
 \widetilde{\rho}\textprime = \widetilde{\rho_k}[x \to \widetilde{a}]
@@ -361,7 +361,7 @@ Returns:
 \widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
-\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
+\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
 \widetilde{h}\textprime = \widetilde{h_k} \cup \widetilde{\rho}\textprime
@@ -369,7 +369,7 @@ Returns:
 
 Above definitions propagate execution history from environment to history field. Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
 \[
-\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
+\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k^H}, \widetilde{a_k^H}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
 \]
 
 \subsection{Polyvariant Continuation}
