@@ -43,16 +43,16 @@ In this paper, we introduce a new method to address the call/return mismatch pro
 
 We implementeded P4F, PDCFA, PDCFA with GC and \textit{h}-CFA for Scheme, and generated state transition graphs (Figure~\ref{fig:state-graphs}) of these four algorithms for a text program in Figure~\ref{fig:fib}.
 
-\begin{figure}[t]
+\begin{figure}
 \small
 \begin{center}
 \begin{tabular}{ccc}
 %\raisebox{1ex-\height}{
-\includegraphics[height=3.5in]{1p4f.pdf}
+\includegraphics[height=2in]{1p4f.pdf}
 %}
 &
 %\raisebox{1ex-\height}{
-\includegraphics[height=3.5in]{pdcfaWOgc.pdf}
+\includegraphics[height=2in]{pdcfaWOgc.pdf}
 %}
 \\
 (a) P4F with 1-call-sensitive
@@ -60,11 +60,11 @@ We implementeded P4F, PDCFA, PDCFA with GC and \textit{h}-CFA for Scheme, and ge
 (b) PDCFA
 \\
 %\raisebox{1ex-\height}{
-\includegraphics[height=3in]{pdcfa.pdf}
+\includegraphics[height=2in]{pdcfa.pdf}
 %}
 &
 %\raisebox{1ex-\height}{
-\includegraphics[height=3in]{hcfa.pdf}
+\includegraphics[height=2in]{hcfa.pdf}
 %}
 \\
 (c) PDCFA with Abstract Garbage Collection
@@ -80,6 +80,7 @@ State transition graphs of: (1) P4F (pushdown control flow analysis for free) wi
 \end{figure}
 
 \begin{figure}
+  \small
   \lstset{language=Lisp}
   \begin{lstlisting}
   (define (fib n)
@@ -97,6 +98,8 @@ We use the example to compare call/return match strengths of four pushdown contr
 }
 \label{fig:fib}
 \end{figure}
+
+As the \textit{h}-CFA graph shows, there are three similar subgraphs in the state transition process, which obviously illuminate no call/return flow merged in \textit{h}-CFA due to three subgraphs connected by single transition edges.
 
 \subsection{Overview}
 \label{sub:Overview}
@@ -180,7 +183,10 @@ Abstract Semantics:
 
 alloc:
 \[
-\widetilde{alloc} (x, \widetilde{\varsigma}) = x
+\widetilde{alloc_0} (x, \widetilde{\varsigma}) = x
+\]
+\[
+\widetilde{alloc_1} (x, \widetilde{\varsigma}) = (x, \widetilde{\varsigma})
 \]
 
 calls:
@@ -230,10 +236,6 @@ returns:
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
 \]
 
-\subsection{Store-widenning}
-\label{sub:Store-widenning}
-
-
 \subsection{A defeat of AAM}
 \label{sub:A defeat of AAM}
 Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return match orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return match (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
@@ -245,18 +247,26 @@ Although, abstracting abstract machines import store-allocated values and store-
 Continuation addresses are represented by $(e\textprime, \widetilde{\rho}\textprime)$ that the most obvious change is it packing callee's function body with ``target environment'' ($\widetilde{\rho}\textprime$) of current application.
 Firstly, environments ($Var \rightharpoonup \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvatiant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into the value addresses. Thus, P4F can be regarded as an adaptive pushdown control flow analysis algorithm that automatically achieves finite call/return match support from values' polyvatiant strategy (implementing of $\widetilde{alloc}$ function).
 Secondly, P4F also reveals a significant fact that why original AAM misses call/return flow match. One of the most important contributions of AAM is that separates analysis context requirement from termination of abstract interpreters. All things (values and continuations) allocated in the store make termination of abstract interpreters easily reached because any implementation of $\widetilde{alloc}$ is sound.
-However, the original $\widetilde{kalloc}$ function that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flow. P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts. Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis result.
+However, the original $\widetilde{kalloc}$ function that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flow. P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts. Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM\@: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis result.
 
 \section{The Essence of Pushdown Control Flow Analysis}
 \label{sec:The Essence of Pushdown Control Flow Analysis}
+Inspired by P4F, we deem that pushdown analysis (polyvariant continuation store) is orthogonal from polyvariant store, in other words, control flow analysis can get call/return match that does not depend on polyvariant store. Simultaneously, we try to find the proper contexts for polyvariant continuations.
+
+This section describes $CESK^H$ machines that record ``program execution history'' into each abstract machine state.
+The program execution history records and summarizes execution path from the beginning of program to current state.
+During evaluating function calls, the program execution history uniquely represents current call site in continuation store.
+
+
 \subsection{Program Execution History}
 \label{sub:Program Execution History}
-Definitions:
+First, we modify the $CESK$ machine defined in Section~\ref{subs:Abstracting Abstract Machine} to $CESK^H$ machine.
+Data types and notations of $CESK^H$ are defined below.
 
 \[
 \tag{states}
-\widetilde{\varsigma}\in\widetilde{\Sigma} \triangleq Exp \times \widetilde{Env} \times \widetilde{Store}
-\times \widetilde{KStore} \times \widetilde{KAddr} \times \widetilde{History}
+\widetilde{\varsigma^H}\in\widetilde{\Sigma^H} \triangleq Exp \times \widetilde{Env} \times \widetilde{Store}
+\times \widetilde{KStore^H} \times \widetilde{KAddr^H} \times \widetilde{History}
 \]
 \[
 \tag{environments}
@@ -276,15 +286,15 @@ Definitions:
 \]
 \[
 \tag{continuation stores}
-\widetilde{\sigma_k} \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \to  \widetilde{Kont}
+\widetilde{\sigma_k^H} \in \widetilde{KStore^H} \triangleq  \widetilde{KAddr^H} \to  \widetilde{Kont^H}
 \]
 \[
 \tag{abstract continuations}
-\widetilde{k} \in  \widetilde{Kont} \triangleq  \mathcal{P}(\widetilde{Frame})
+\widetilde{k^H} \in  \widetilde{Kont^H} \triangleq  \mathcal{P}(\widetilde{Frame^H})
 \]
 \[
 \tag{stack frames}
-\widetilde{\phi} \in  \widetilde{Frame} \triangleq Var \times Exp \times  \widetilde{Env} \times \widetilde{History} \times  \widetilde{KAddr}
+\widetilde{\phi^H} \in  \widetilde{Frame^H} \triangleq Var \times Exp \times  \widetilde{Env} \times \widetilde{History} \times  \widetilde{KAddr^H}
 \]
 \[
 \tag{histories}
@@ -296,17 +306,16 @@ Definitions:
 \]
 \[
 \tag{continuation addresses}
-\widetilde{a_k} \in \widetilde{KAddr} \ is\ a\ finite\ set
+\widetilde{a_k^H} \in \widetilde{KAddr} \ is\ a\ finite\ set
 \]
 
-Abstract Semantics:
+In ANF programs, environment naturally maintains intro-procedural execution history because ANF explicitly extracts intro-procedural control flows in let-bindings and saves every intermediate result in a local variable.
+Consequently, the program execution histories can be implemented as propagating environments by $\widetilde{History}$ field of $CESK^H$ machine states.
+The execution history can be regarded as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, execution history can automatically stop growth for recursive calls, and the work list algorithm will be responsible for finding the fixed-point of recursive computation.
 
-kalloc:
-\[
-\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
-\]
+Following definitions describe the abstract semantics of $CESK^H$ machine.
 
-calls:
+Calls:
 \[
 \overbrace{
 \big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h} \big)
@@ -335,7 +344,7 @@ calls:
 \widetilde{h}\textprime = \widetilde{h} \cup \widetilde{\rho}  \cup \widetilde{\rho}\textprime
 \]
 
-returns:
+Returns:
 \[
 \overbrace{
 (ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h})
@@ -358,9 +367,48 @@ returns:
 \widetilde{h}\textprime = \widetilde{h_k} \cup \widetilde{\rho}\textprime
 \]
 
+Above definitions propagate execution history from environment to history field. Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
+\[
+\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
+\]
+
 \subsection{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-In this section, we use illustrations to show the principles of \textit{h}-CFA\@.
+Let's exam the analysis process of a simple example to understand \textit{h}-CFA, the example is similar with Figure~\ref{fig:fib} but written in ANF style showed by Figure~\ref{fig:anf-fib}.
+
+\begin{figure}[h]
+\small
+\lstset{language=Lisp}
+\begin{lstlisting}
+  (letrec ((fib (lambda (n)
+                  (let ((res1 (< n 3)))
+                    (if res1
+                        1
+                        (let* ((res2 (- n 1))
+                               (res3 (fib res2))
+                               (res4 (- n 2))
+                               (res5 (fib res4))
+                               (res6 (+ res3 res5)))
+                            res6))))))
+    (let ((a (fib 10))
+          (b (fib 20)))
+      $\dots$))
+\end{lstlisting}
+\caption{
+We rewrite the former example in ANF style.
+For convenient  demonstrating, we use complete Scheme language with numbers and booleans instead of pure lambda calculus.
+}
+\label{fig:anf-fib}
+\end{figure}
+
+In this subsection, execution histories are briefly represented as variable sequences, and callee's function body (the first part of $\widetilde{KAddr^H}$) is replaced by the function name. This temporary convince just makes the explain more readable but not actually modify the abstract semantics of $CESK^H$ machines.
+
+Through steps of the abstract interpreter, the first call site (a (fib 10)) carries history $\{fib\}$ that means in this program point we only finished computing the declaration of function ``fib''. Thus, the continuation (call stack frame) of the call site is allocated in
+
+\subsection{Store-widenning}
+\label{sub:Store-widenning}
+
+
 \section{Static Analysis of JavaScript}
 \label{sec:Static Analysis of JavaScript}
 \subsection{Abstract Garbage Collection as Stack Filtering}
