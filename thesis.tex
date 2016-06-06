@@ -148,7 +148,7 @@ Definitions:
 \]
 \[
 \tag{srores}
-\widetilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \to \widetilde{Value}
+\widetilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \mapsto \widetilde{Value}
 \]
 \[
 \tag{abstract values}
@@ -160,7 +160,7 @@ Definitions:
 \]
 \[
 \tag{continuation stores}
-\widetilde{\sigma_k} \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \to  \widetilde{Kont}
+\widetilde{\sigma_k} \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \mapsto  \widetilde{Kont}
 \]
 \[
 \tag{abstract continuations}
@@ -200,16 +200,16 @@ calls:
 \big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
 \]
 \[
-\widetilde{\rho}\textprime = \widetilde{\rho}_{\lambda}[x \to \widetilde{a}]
+\widetilde{\rho}\textprime = \widetilde{\rho}_{\lambda}[x \mapsto \widetilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
 \]
 \[
-\widetilde{\sigma_k}\textprime = \widetilde{\sigma_k} \sqcup [\widetilde{a_k}\textprime \to {(y, e, \widetilde{\rho}, \widetilde{a_k})}]
+\widetilde{\sigma_k}\textprime = \widetilde{\sigma_k} \sqcup [\widetilde{a_k}\textprime \mapsto {(y, e, \widetilde{\rho}, \widetilde{a_k})}]
 \]
 \[
 \widetilde{a_k}\textprime = \widetilde{kalloc}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
@@ -227,10 +227,10 @@ returns:
 (x, e, \widetilde{\rho_k}, \widetilde{a_k}\textprime) \in \widetilde{\sigma_k}(\widetilde{a_k})
 \]
 \[
-\widetilde{\rho}\textprime = \widetilde{\rho_k}[x \to \widetilde{a}]
+\widetilde{\rho}\textprime = \widetilde{\rho_k}[x \mapsto \widetilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
@@ -274,7 +274,7 @@ Data types and notations of $CESK^H$ are defined below.
 \]
 \[
 \tag{srores}
-\widetilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \to \widetilde{Value}
+\widetilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \mapsto \widetilde{Value}
 \]
 \[
 \tag{abstract values}
@@ -286,7 +286,7 @@ Data types and notations of $CESK^H$ are defined below.
 \]
 \[
 \tag{continuation stores}
-\widetilde{\sigma_k^H} \in \widetilde{KStore^H} \triangleq  \widetilde{KAddr^H} \to  \widetilde{Kont^H}
+\widetilde{\sigma_k^H} \in \widetilde{KStore^H} \triangleq  \widetilde{KAddr^H} \mapsto  \widetilde{Kont^H}
 \]
 \[
 \tag{abstract continuations}
@@ -326,22 +326,22 @@ Calls:
 \big((lambda\ (x)\ e\textprime), \tilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \tilde{\rho}, \tilde{\sigma})
 \]
 \[
-\tilde{\rho}\textprime = \tilde{\rho}_{\lambda}[x \to \tilde{a}]
+\tilde{\rho}\textprime = \tilde{\rho}_{\lambda}[x \mapsto \tilde{a}]
 \]
 \[
-\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \to \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
 \tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
-\widetilde{\sigma_k^H}\textprime = \widetilde{\sigma_k^H} \sqcup [\widetilde{a_k^H}\textprime \to {(y, e, \tilde{\rho}, \tilde{h}, \widetilde{a_k^H})}]
+\widetilde{\sigma_k^H}\textprime = \widetilde{\sigma_k^H} \sqcup [\widetilde{a_k^H}\textprime \mapsto {(y, e, \tilde{\rho}, \tilde{h}, \widetilde{a_k^H})}]
 \]
 \[
 \widetilde{a_k^H}\textprime = \widetilde{kalloc_h}(\tilde{\varsigma}, e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime)
 \]
 \[
-\tilde{h}\textprime = \tilde{h}[x \to \tilde{a}]
+\tilde{h}\textprime = \tilde{h}[x \mapsto \tilde{a}]
 \]
 
 Returns:
@@ -355,16 +355,16 @@ Returns:
 (x, e, \tilde{\rho_k}, \tilde{h_k}, \widetilde{a_k^H}\textprime) \in \widetilde{\sigma_k^H}(\widetilde{a_k^H})
 \]
 \[
-\tilde{\rho}\textprime = \tilde{\rho_k}[x \to \tilde{a}]
+\tilde{\rho}\textprime = \tilde{\rho_k}[x \mapsto \tilde{a}]
 \]
 \[
-\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \to \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
 \tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
-\tilde{h}\textprime = \tilde{h_k}[x \to \tilde{a}]
+\tilde{h}\textprime = \tilde{h_k}[x \mapsto \tilde{a}]
 \]
 
 Above definitions propagate execution history by adding current . Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
@@ -384,9 +384,9 @@ Let's exam the analysis process of a simple example to understand \textit{h}-CFA
                   (let ((res1 (< n 3)))
                     (if res1
                         1
-                        (let* ((res2 (- n 1))
+                        (let* ((res2 ($-$ n 1))
                                (res3 (fib res2))
-                               (res4 (- n 2))
+                               (res4 ($-$ n 2))
                                (res5 (fib res4))
                                (res6 (+ res3 res5)))
                             res6))))))
@@ -401,9 +401,62 @@ For convenient  demonstrating, we use complete Scheme language with numbers and 
 \label{fig:anf-fib}
 \end{figure}
 
-In this subsection, execution histories are briefly represented as variable sequences, and callee's function body (the first part of $\widetilde{KAddr^H}$) is replaced by the function name. This temporary convince just makes the explain more readable but not actually modify the abstract semantics of $CESK^H$ machines.
+In this subsection, execution histories are briefly represented as variable sequences, and callee's function body (the first part of $\widetilde{KAddr^H}$) is replaced by the function name. This temporary convince just makes the explanation more readable but not actually modify the abstract semantics of $CESK^H$ machines.
 
-Through steps of the abstract interpreter, the first call site (a (fib 10)) carries history $\{fib\}$ that means in this program point we only finished computing the declaration of function ``fib''. Thus, the continuation (call stack frame) of the call site is allocated in
+Through steps of the abstract interpreter, the first call site (a (fib 10)) carries history $\{fib\}$ that means in this program point we only finished computing the declaration of function ``fib''.
+Thus, the continuation (call stack frame) of the call site is allocated at $(fib, \{fib\})$, and the stack frame looks like $(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \{fib\}, \widetilde{a_k{}_{init}})$ that is the one and only element of the continuation store so far.
+The stack frame expresses that after complete this invocation,
+(1) return value will be stored in variable ``a'',
+(2) the computation will shift to $(let\ (b\ (fib\ 20))\ \dots)$ with environment $\widetilde{env_1}$,
+(3) and recover continuation address $\widetilde{a_k{}_{init}}$ a fake continuation address representing top level's continuation.
+
+After diving into the callee's function body, the second call appears at (res3 (fib res2)). At this point, the execution history $\{fib, res1, res2\}$ is different from the history of last call site, so the continuation store contains two abstract continuations with distinct addresses.
+\[
+\widetilde{a^H_k{}_1} = (fib, \{fib\})
+\]
+\[
+\widetilde{a^H_k{}_2} = (fib, \{fib, res1, res2\})
+\]
+\[
+\begin{aligned}
+\label{eq:show-stack}
+\widetilde{\sigma_k^H} = \{ {}& \widetilde{a^H_k{}_1} \mapsto \{(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \{fib\}, \widetilde{a^H_k{}_{init}})\}  {} \\
+                              & \widetilde{a^H_k{}_2} \mapsto \{(res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \{fib, res1, res2\}, \tilde{a^H_k{}_1})\} \}
+\end{aligned}
+\]
+
+As above illustration shows, the continuation store is a linked stack structure. Each frame has a $\widetilde{a^H_k}$ that points to the next frame in the stack. This stack-like structure perfect mimics call stacks of concrete interpreters. Certainly, the call stie (fib res4) will also gets its own execution history after computation of (fib res2) becomes complete (acquired its fixed-point).
+
+\[
+\widetilde{a^H_k{}_3} = (fib, \{fib, res1, res2, res3, res4\})
+\]
+
+However, (res3 (fib res2)) is a recursive call site, so the execution history at this point will not be added new element to distinguish (res3 (fib res2)) from its variances of different recursive levels. Thus, control flows from multiple recursive levels of a call site are merged into one continuation address. Eventually, there are three frames merged into $\widetilde{a^H_k{}_2}$, but this merge does not lead ``static'' call/return mismatch. All of the frames merged into $\widetilde{a^H_k{}_2}$ can bring control flow back to set ``res3''.
+
+\[
+\begin{aligned}
+\label{eq:show-stack}
+\widetilde{a^H_k{}_2} \mapsto \{ {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \tilde{h_2}, \widetilde{a^H_k{}_1}), {} \\
+                                 {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_a}, \tilde{h_a}, \widetilde{a^H_k{}_2}), {} \\
+                                   & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_b}, \tilde{h_b}, \widetilde{a^H_k{}_3}) \}
+\end{aligned}
+\]
+
+The merging expresses a fact that the invocation of ``fib'' at point (fib res2) may be made by (a (fib 10), (fib res2), or (fib res4). Moreover, the second frame in above illustration has the ``next'' pointer $\widetilde{a^H_k{}_2}$ that refers to itself. This cycle makes the continuation store no longer stack-like, but a graph. Concurrently, $\widetilde{a^H_k{}_2}$ is not the only circular pointer, and the abstract continuation in $\widetilde{a^H_k{}_3}$ also contains cycles because $\widetilde{a^H_k{}_3}$ allocated by another recursive call.
+
+After compute (a (fib 10), the function ``fib'' is called again by (b (fib 20)). At this point, $\widetilde{kalloc_h}$ generates a new continuation address.
+
+\[
+\widetilde{a^H_k{}_4} = (fib, \{fib, a\})
+\]
+
+The execution history of this point becomes $\{fib, a\}$ that summarize the execution path of computing (a (fib 10) to ``a''. In other words, the program execution history just cares about which portions of the program we have done, but it ignores how we got them. This summarization limits length of execution histories under \textit{n} (the size of input program) in worst cases.
+
+Then the abstract interpreter restarts to execute the function and encounters call site (res3 (fib res2)) again. At this time, the continuation address allocated for call site (res3 (fib res2)) differs from last time.
+
+\[
+\widetilde{a^H_k{}_5} = (fib, \{fib, a, res1, res2\})
+\]
 
 \subsection{Store-widenning}
 \label{sub:Store-widenning}
