@@ -369,7 +369,8 @@ Returns:
 
 Above definitions propagate execution history by adding current . Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
 \[
-\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k^H}, \widetilde{a_k^H}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
+\widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k^H}, \widetilde{a_k^H}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) =
+(e, e\textprime, \widetilde{h})
 \]
 
 \subsection{Polyvariant Continuation}
@@ -412,10 +413,10 @@ The stack frame expresses that after complete this invocation,
 
 After diving into the callee's function body, the second call appears at (res3 (fib res2)). At this point, the execution history $\{fib, res1, res2\}$ is different from the history of last call site, so the continuation store contains two abstract continuations with distinct addresses.
 \[
-\widetilde{a^H_k{}_1} = (fib, \{fib\})
+\widetilde{a^H_k{}_1} = ((fib\ 10), fib, \{fib\})
 \]
 \[
-\widetilde{a^H_k{}_2} = (fib, \{fib, res1, res2\})
+\widetilde{a^H_k{}_2} = ((fib\ res2), fib, \{fib, res1, res2\})
 \]
 \[
 \begin{aligned}
@@ -428,7 +429,7 @@ After diving into the callee's function body, the second call appears at (res3 (
 As above illustration shows, the continuation store is a linked stack structure. Each frame has a $\widetilde{a^H_k}$ that points to the next frame in the stack. This stack-like structure perfect mimics call stacks of concrete interpreters. Certainly, the call stie (fib res4) will also gets its own execution history after computation of (fib res2) becomes complete (acquired its fixed-point).
 
 \[
-\widetilde{a^H_k{}_3} = (fib, \{fib, res1, res2, res3, res4\})
+\widetilde{a^H_k{}_3} = ((fib\ res4), fib, \{fib, res1, res2, res3, res4\})
 \]
 
 However, (res3 (fib res2)) is a recursive call site, so the execution history at this point will not be added new element to distinguish (res3 (fib res2)) from its variances of different recursive levels. Thus, control flows from multiple recursive levels of a call site are merged into one continuation address. Eventually, there are three frames merged into $\widetilde{a^H_k{}_2}$, but this merge does not lead ``static'' call/return mismatch. All of the frames merged into $\widetilde{a^H_k{}_2}$ can bring control flow back to set ``res3''.
@@ -437,25 +438,24 @@ However, (res3 (fib res2)) is a recursive call site, so the execution history at
 \begin{aligned}
 \label{eq:show-stack}
 \widetilde{a^H_k{}_2} \mapsto \{ {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \tilde{h_2}, \widetilde{a^H_k{}_1}), {} \\
-                                 {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_a}, \tilde{h_a}, \widetilde{a^H_k{}_2}), {} \\
-                                   & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_b}, \tilde{h_b}, \widetilde{a^H_k{}_3}) \}
+                                 {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_a}, \tilde{h_a}, \widetilde{a^H_k{}_2}) \}
 \end{aligned}
 \]
 
-The merging expresses a fact that the invocation of ``fib'' at point (fib res2) may be made by (a (fib 10), (fib res2), or (fib res4). Moreover, the second frame in above illustration has the ``next'' pointer $\widetilde{a^H_k{}_2}$ that refers to itself. This cycle makes the continuation store no longer stack-like, but a graph. Concurrently, $\widetilde{a^H_k{}_2}$ is not the only circular pointer, and the abstract continuation in $\widetilde{a^H_k{}_3}$ also contains cycles because $\widetilde{a^H_k{}_3}$ allocated by another recursive call.
+The merging expresses a fact that the invocation of ``fib'' at point (fib res2) may be made by (a (fib 10)) or (res3 (fib res2)). Moreover, the second frame in above illustration has the ``next'' pointer $\widetilde{a^H_k{}_2}$ that refers to itself. This cycle makes the continuation store no longer stack-like, but a graph.
 
 After compute (a (fib 10), the function ``fib'' is called again by (b (fib 20)). At this point, $\widetilde{kalloc_h}$ generates a new continuation address.
 
 \[
-\widetilde{a^H_k{}_4} = (fib, \{fib, a\})
+\widetilde{a^H_k{}_4} = ((fib\ 20), fib, \{fib, a\})
 \]
 
-The execution history of this point becomes $\{fib, a\}$ that summarize the execution path of computing (a (fib 10) to ``a''. In other words, the program execution history just cares about which portions of the program we have done, but it ignores how we got them. This summarization limits length of execution histories under \textit{n} (the size of input program) in worst cases.
+The execution history of this point becomes $\{fib, a\}$ that summarize the execution path of computing (a (fib 10)) to ``a''. In other words, the program execution history just cares about which portions of the program we have done, but it ignores how we got them. This summarization limits length of execution histories under \textit{n} (the size of input program) in worst cases.
 
 Then the abstract interpreter restarts to execute the function and encounters call site (res3 (fib res2)) again. At this time, the continuation address allocated for call site (res3 (fib res2)) differs from last time.
 
 \[
-\widetilde{a^H_k{}_5} = (fib, \{fib, a, res1, res2\})
+\widetilde{a^H_k{}_5} = ((fib\ res2), fib, \{fib, a, res1, res2\})
 \]
 
 \subsection{Store-widenning}
