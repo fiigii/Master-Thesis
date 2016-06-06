@@ -318,56 +318,56 @@ Following definitions describe the abstract semantics of $CESK^H$ machine.
 Calls:
 \[
 \overbrace{
-\big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h} \big)
+\big((let\ ([y\ (f\ ae)]\ e)), \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \tilde{a_k}, \tilde{h} \big)
 }^{\widetilde{\varsigma^H}}
-\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k^H}\textprime, \widetilde{a_k^H}\textprime, \widetilde{h}\textprime \big), where
+\leadsto \big(e\textprime,\tilde{\rho}\textprime, \tilde{\sigma}\textprime, \widetilde{\sigma_k^H}\textprime, \widetilde{a_k^H}\textprime, \tilde{h}\textprime \big), where
 \]
 \[
-\big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
+\big((lambda\ (x)\ e\textprime), \tilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \tilde{\rho}, \tilde{\sigma})
 \]
 \[
-\widetilde{\rho}\textprime = \widetilde{\rho}_{\lambda}[x \to \widetilde{a}]
+\tilde{\rho}\textprime = \tilde{\rho}_{\lambda}[x \to \tilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \to \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
-\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
+\tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
-\widetilde{\sigma_k^H}\textprime = \widetilde{\sigma_k^H} \sqcup [\widetilde{a_k^H}\textprime \to {(y, e, \widetilde{\rho}, \widetilde{h}, \widetilde{a_k^H})}]
+\widetilde{\sigma_k^H}\textprime = \widetilde{\sigma_k^H} \sqcup [\widetilde{a_k^H}\textprime \to {(y, e, \tilde{\rho}, \tilde{h}, \widetilde{a_k^H})}]
 \]
 \[
-\widetilde{a_k^H}\textprime = \widetilde{kalloc_h}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
+\widetilde{a_k^H}\textprime = \widetilde{kalloc_h}(\tilde{\varsigma}, e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime)
 \]
 \[
-\widetilde{h}\textprime = \widetilde{h} \cup \widetilde{\rho}  \cup \widetilde{\rho}\textprime
+\tilde{h}\textprime = \tilde{h}[x \to \tilde{a}]
 \]
 
 Returns:
 \[
 \overbrace{
-(ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}, \widetilde{h})
+(ae, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \widetilde{a_k^H}, \tilde{h})
 }^{\widetilde{\varsigma^H}}
-\leadsto (e, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k^H}, \widetilde{a_k^H}\textprime, \widetilde{h}\textprime)
+\leadsto (e, \tilde{\rho}\textprime, \tilde{\sigma}\textprime, \widetilde{\sigma_k^H}, \widetilde{a_k^H}\textprime, \tilde{h}\textprime)
 \]
 \[
-(x, e, \widetilde{\rho_k}, \widetilde{h_k}, \widetilde{a_k^H}\textprime) \in \widetilde{\sigma_k^H}(\widetilde{a_k^H})
+(x, e, \tilde{\rho_k}, \tilde{h_k}, \widetilde{a_k^H}\textprime) \in \widetilde{\sigma_k^H}(\widetilde{a_k^H})
 \]
 \[
-\widetilde{\rho}\textprime = \widetilde{\rho_k}[x \to \widetilde{a}]
+\tilde{\rho}\textprime = \tilde{\rho_k}[x \to \tilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \to \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \to \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
-\widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
+\tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
 \]
 \[
-\widetilde{h}\textprime = \widetilde{h_k} \cup \widetilde{\rho}\textprime
+\tilde{h}\textprime = \tilde{h_k}[x \to \tilde{a}]
 \]
 
-Above definitions propagate execution history from environment to history field. Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
+Above definitions propagate execution history by adding current . Then $\widetilde{kalloc_h}$ function takes the execution history to compute the unique continuation address for corresponding call site.
 \[
 \widetilde{kalloc_h} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k^H}, \widetilde{a_k^H}, \widetilde{h}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{h})
 \]
