@@ -20,7 +20,7 @@ Meanwhile, abstracting abstract machine (AAM) a configurable framework for const
 \end{abstract}
 \section{Introduction}
 \label{Introduction}
-Dynamic programming languages (e.g. JavaScript, Python, and Ruby, etc.) play a significant role in a lot of computing areas, such as system management, web development, and scientific computing. Especially, in the past decade, JavaScript becomes a ubiquitous computing environment. However, their certain features (e.g.\ duck-typing, first-class function, highly dynamic object model) make bug detection difficult. Control flow  analysis becomes a good approach to detect deeply semantic defeats before actual running programs, but original control flow analysis (\textit{k}-CFA) is too imprecise to apply in realized programs. For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces precision of analysis.
+Dynamic programming languages (e.g. JavaScript, Python, and Ruby, etc.) play a significant role in a lot of computing areas, such as system management, web development, and scientific computing. Especially, in the past decade, JavaScript becomes a ubiquitous computing environment. However, their certain features (e.g.\ duck-typing, first-class function, highly dynamic object model) make bug detection difficult. Control flow  analysis becomes a good approach to detect deeply semantic defect before actual running programs, but original control flow analysis (\textit{k}-CFA) is too imprecise to apply in realized programs. For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces precision of analysis.
 
 \lstset{language=Lisp, mathescape}
 \begin{lstlisting}
@@ -236,8 +236,8 @@ returns:
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
 \]
 
-\subsection{A defeat of AAM}
-\label{sub:A defeat of AAM}
+\subsection{Defect of AAM}
+\label{sub:Defect of AAM}
 Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return match orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return match (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
 
 \[
@@ -460,6 +460,9 @@ Then the abstract interpreter restarts to execute the function and encounters ca
 
 \subsection{Store-widenning}
 \label{sub:Store-widenning}
+
+\subsection{Defect of \textit{h}-CFA}
+\label{sub:Defect of h-CFA}
 
 
 \section{Static Analysis of JavaScript}
