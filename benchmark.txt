@@ -1,0 +1,197 @@
+k=0  policy=p4f
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 14
+States explored: 28
+benchmarks/gcfa2/eta.scm
+Configurations explored: 15
+States explored: 30
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 11
+States explored: 36
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 13
+States explored: 47
+benchmarks/gcfa2/blur.scm
+Configurations explored: 19
+States explored: 62
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 14
+States explored: 25
+benchmarks/gcfa2/sat.scm
+Configurations explored: 22
+States explored: 52
+benchmarks/larceny/ack.sch
+Configurations explored: 10
+States explored: 17
+benchmarks/larceny/cpstak.sch
+Configurations explored: 14
+States explored: 32
+benchmarks/larceny/tak.sch
+Configurations explored: 10
+States explored: 24
+
+k=0  policy=aac
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 28
+States explored: 54
+benchmarks/gcfa2/eta.scm
+Configurations explored: 28
+States explored: 55
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 39
+States explored: 100
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 55
+States explored: 155
+benchmarks/gcfa2/blur.scm
+Configurations explored: 123
+States explored: 469
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 48
+States explored: 72
+benchmarks/gcfa2/sat.scm
+Configurations explored: 84
+States explored: 311
+benchmarks/larceny/ack.sch
+Configurations explored: 46
+States explored: 139
+benchmarks/larceny/cpstak.sch
+Configurations explored: 59
+States explored: 109
+benchmarks/larceny/tak.sch
+Configurations explored: 76
+States explored: 379
+
+k=0  policy=h-CFA
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 29
+States explored: 37
+benchmarks/gcfa2/eta.scm
+Configurations explored: 19
+States explored: 22
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 45
+States explored: 81
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 77
+States explored: 168
+benchmarks/gcfa2/blur.scm
+Configurations explored: 90
+States explored: 197
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 44
+States explored: 71
+benchmarks/gcfa2/sat.scm
+Configurations explored: 136
+States explored: 577
+benchmarks/larceny/ack.sch
+Configurations explored: 40
+States explored: 86
+benchmarks/larceny/cpstak.sch
+Configurations explored: 64
+States explored: 98
+benchmarks/larceny/tak.sch
+Configurations explored: 70
+States explored: 239
+
+k=1  policy=p4f
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 23
+States explored: 55
+benchmarks/gcfa2/eta.scm
+Configurations explored: 16
+States explored: 26
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 30
+States explored: 135
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 46
+States explored: 275
+benchmarks/gcfa2/blur.scm
+Configurations explored: 36
+States explored: 75
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 33
+States explored: 68
+benchmarks/gcfa2/sat.scm
+Configurations explored: 69
+States explored: 199
+benchmarks/larceny/ack.sch
+Configurations explored: 28
+States explored: 82
+benchmarks/larceny/cpstak.sch
+Configurations explored: 17
+States explored: 27
+benchmarks/larceny/tak.sch
+Configurations explored: 34
+States explored: 133
+
+k=1  policy=aac
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 45
+States explored: 94
+benchmarks/gcfa2/eta.scm
+Configurations explored: 23
+States explored: 39
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 139
+States explored: 432
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 269
+States explored: 1145
+benchmarks/gcfa2/blur.scm
+Configurations explored: 93
+States explored: 183
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 205
+States explored: 354
+benchmarks/gcfa2/sat.scm
+Configurations explored: 407
+States explored: 1999
+benchmarks/larceny/ack.sch
+Configurations explored: 130
+States explored: 645
+benchmarks/larceny/cpstak.sch
+Configurations explored: 46
+States explored: 73
+benchmarks/larceny/tak.sch
+Configurations explored: 214
+States explored: 1420
+
+k=1  policy=h-CFA
+-----------------
+benchmarks/gcfa2/mj09.scm
+Configurations explored: 25
+States explored: 28
+benchmarks/gcfa2/eta.scm
+Configurations explored: 17
+States explored: 16
+benchmarks/gcfa2/kcfa2.scm
+Configurations explored: 54
+States explored: 110
+benchmarks/gcfa2/kcfa3.scm
+Configurations explored: 118
+States explored: 348
+benchmarks/gcfa2/blur.scm
+Configurations explored: 52
+States explored: 63
+benchmarks/gcfa2/loop2.scm
+Configurations explored: 86
+States explored: 139
+benchmarks/gcfa2/sat.scm
+Configurations explored: 326
+States explored: 734
+benchmarks/larceny/ack.sch
+Configurations explored: 106
+States explored: 363
+benchmarks/larceny/cpstak.sch
+Configurations explored: 19
+States explored: 18
+benchmarks/larceny/tak.sch
+Configurations explored: 214
+States explored: 945
