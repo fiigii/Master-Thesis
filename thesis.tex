@@ -4,6 +4,8 @@
 \usepackage{listings}
 \usepackage{flexisym}
 \usepackage{graphicx}
+\usepackage{pgfplots}
+\pgfplotsset{width=9cm,compat=newest}
 %\usepackage{titling}
 \makeatletter
 \def\tagform@#1{\maketag@@@{[\ignorespaces#1\unskip\@@italiccorr]}}
@@ -482,6 +484,66 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & $O(n^5)$                   \\ \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[h]
+\small
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak},
+  xtick=data,
+	ylabel=States,
+	enlargelimits=0.05,
+	legend style={at={(0.5,-0.1)},
+	anchor=north,legend columns=-1},
+	ybar interval=0.6,
+]
+\addplot
+	coordinates {(mj09,54) (eta,55)
+		 (kcfa2,100) (kcfa3,155) (blur,469) (loop2,72) (sat, 311)
+     (ack, 139) (cpstak, 109) (tak, 379)};
+\addplot
+coordinates {(mj09,37) (eta,22)
+   (kcfa2,81) (kcfa3,168) (blur,197) (loop2,71) (sat, 577)
+   (ack, 86) (cpstak, 98) (tak, 239)};
+\legend{AAC,\textit{h}-CFA}
+\end{axis}
+\end{tikzpicture}
+\caption{monovariant analysis comparison}
+\label{0-benchmark}
+\end{figure}
+
+\begin{figure}[h]
+  \small
+  \centering
+\begin{tikzpicture}
+\begin{axis}[
+	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak},
+  xtick=data,
+	ylabel=States,
+	enlargelimits=0.05,
+	legend style={at={(0.5,-0.1)},
+	anchor=north,legend columns=-1},
+	ybar interval=0.7,
+]
+\addplot
+	coordinates {(mj09,94) (eta,39)
+		 (kcfa2,432) (kcfa3,1145) (blur,183) (loop2,354) (sat, 1999)
+     (ack, 645) (cpstak, 73) (tak, 1420)};
+\addplot
+coordinates {(mj09,28) (eta,16)
+   (kcfa2,110) (kcfa3,348) (blur,63) (loop2,139) (sat, 734)
+   (ack, 363) (cpstak, 18) (tak, 945)};
+\addplot
+coordinates {(mj09,55) (eta,26)
+   	(kcfa2,135) (kcfa3,275) (blur,75) (loop2,68) (sat, 199)
+    (ack, 82) (cpstak, 27) (tak, 133)};
+\legend{AAC,\textit{h}-CFA,P4F}
+\end{axis}
+\end{tikzpicture}
+\caption{1-call-site sensitive analysis comparison}
+\label{1-benchmark}
+\end{figure}
 
 \subsection{Defect of \textit{h}-CFA}
 \label{sub:Defect of h-CFA}
