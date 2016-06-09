@@ -5,7 +5,7 @@
 \usepackage{flexisym}
 \usepackage{graphicx}
 \usepackage{pgfplots}
-\pgfplotsset{width=9cm,compat=newest}
+\pgfplotsset{width=10cm,compat=newest}
 %\usepackage{titling}
 \makeatletter
 \def\tagform@#1{\maketag@@@{[\ignorespaces#1\unskip\@@italiccorr]}}
@@ -263,7 +263,7 @@ During evaluating function calls, the program execution history can be used to u
 \subsection{Program Execution History}
 \label{sub:Program Execution History}
 First, we modify the $CESK$ machine defined in Section~\ref{subs:Abstracting Abstract Machine} to $CESK^H$ machine.
-Data types and notations of $CESK^H$ are defined below.
+Data types and notations of $CESK^H$ are defined below. We changed parts of $CESK$ definitions and indicate them with superscript $H$.
 
 \[
 \tag{states}
@@ -375,7 +375,7 @@ The semantics of function calls propagate execution history by adding current ``
 (e, e\textprime, \tilde{h})
 \]
 
-$\widetilde{KAddr^H}$ in $CESK^H$ machines is encoded by: (1) the call stie $e$, (2) the body of called function $e\textprime$, (3) and current execution history $\tilde{h}$. 0-CFA-like analysis in AAM just adopts $e\textprime$ to refer abstract continuations, so all the potential call sites that may invoke $e\textprime$ will merge with each others. Therefore, we represent the very last call site by $e$ and rests by $\tilde{h}$.
+$\widetilde{KAddr^H}$ in $CESK^H$ machines is encoded by: (1) the call stie $e$, (2) the body of called function $e\textprime$, (3) and current execution history $\tilde{h}$. 0-CFA-like analysis in AAM just adopts $e\textprime$ to refer abstract continuations, so all the potential call sites that may invoke $e\textprime$ will merge with each others. Therefore, the $\widetilde{KAddr^H}$ definition distinguishs as many as possible call sites of $e\textprime$ via the very last call site $e$ and the rests encodeed by $\tilde{h}$.
 
 \subsection{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
@@ -490,7 +490,7 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak},
+	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
   xtick=data,
 	ylabel=States,
 	enlargelimits=0.05,
@@ -501,11 +501,11 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \addplot
 	coordinates {(mj09,54) (eta,55)
 		 (kcfa2,100) (kcfa3,155) (blur,469) (loop2,72) (sat, 311)
-     (ack, 139) (cpstak, 109) (tak, 379)};
+     (ack, 139) (cpstak, 109) (tak,379) (fib,206) (empty,0)};
 \addplot
 coordinates {(mj09,37) (eta,22)
    (kcfa2,81) (kcfa3,168) (blur,197) (loop2,71) (sat, 577)
-   (ack, 86) (cpstak, 98) (tak, 239)};
+   (ack, 86) (cpstak,98) (tak,239) (fib,108) (empty,0)};
 \legend{AAC,\textit{h}-CFA}
 \end{axis}
 \end{tikzpicture}
@@ -518,7 +518,7 @@ coordinates {(mj09,37) (eta,22)
   \centering
 \begin{tikzpicture}
 \begin{axis}[
-	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak},
+	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
   xtick=data,
 	ylabel=States,
 	enlargelimits=0.05,
@@ -529,15 +529,15 @@ coordinates {(mj09,37) (eta,22)
 \addplot
 	coordinates {(mj09,94) (eta,39)
 		 (kcfa2,432) (kcfa3,1145) (blur,183) (loop2,354) (sat, 1999)
-     (ack, 645) (cpstak, 73) (tak, 1420)};
+     (ack, 645) (cpstak, 73) (tak, 1420) (fib,2273) (empty,0)};
 \addplot
 coordinates {(mj09,28) (eta,16)
    (kcfa2,110) (kcfa3,348) (blur,63) (loop2,139) (sat, 734)
-   (ack, 363) (cpstak, 18) (tak, 945)};
+   (ack, 363) (cpstak, 18) (tak, 945) (fib,1928) (empty,0)};
 \addplot
 coordinates {(mj09,55) (eta,26)
    	(kcfa2,135) (kcfa3,275) (blur,75) (loop2,68) (sat, 199)
-    (ack, 82) (cpstak, 27) (tak, 133)};
+    (ack, 82) (cpstak, 27) (tak, 133) (fib,209) (empty,0)};
 \legend{AAC,\textit{h}-CFA,P4F}
 \end{axis}
 \end{tikzpicture}
