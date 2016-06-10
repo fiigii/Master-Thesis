@@ -60,6 +60,12 @@ INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/graphics/lscape.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/graphics/lscape.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/rotating/rotating.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/rotating/rotating.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/base/ifthen.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/base/ifthen.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/pgfplots/pgfplots.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/pgfplots/pgfplots.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/pgfplots/pgfplots.revision.tex
@@ -298,6 +304,12 @@ INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/base/omlcmr.fd
 INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/base/omlcmr.fd
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbxti10.tfm
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang2.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang2.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang3.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang3.sty
 INPUT thesis.aux
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
