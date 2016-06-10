@@ -1,36 +1,3 @@
-k=0  policy=p4f
------------------
-benchmarks/gcfa2/mj09.scm
-Configurations explored: 14
-States explored: 28
-benchmarks/gcfa2/eta.scm
-Configurations explored: 15
-States explored: 30
-benchmarks/gcfa2/kcfa2.scm
-Configurations explored: 11
-States explored: 36
-benchmarks/gcfa2/kcfa3.scm
-Configurations explored: 13
-States explored: 47
-benchmarks/gcfa2/blur.scm
-Configurations explored: 19
-States explored: 62
-benchmarks/gcfa2/loop2.scm
-Configurations explored: 14
-States explored: 25
-benchmarks/gcfa2/sat.scm
-Configurations explored: 22
-States explored: 52
-benchmarks/larceny/ack.sch
-Configurations explored: 10
-States explored: 17
-benchmarks/larceny/cpstak.sch
-Configurations explored: 14
-States explored: 32
-benchmarks/larceny/tak.sch
-Configurations explored: 10
-States explored: 24
-
 k=0  policy=aac
 -----------------
 benchmarks/gcfa2/mj09.scm
@@ -63,6 +30,9 @@ States explored: 109
 benchmarks/larceny/tak.sch
 Configurations explored: 76
 States explored: 379
+fib
+Configurations explored: 82
+States explored: 206
 
 k=0  policy=h-CFA
 -----------------
@@ -96,6 +66,9 @@ States explored: 98
 benchmarks/larceny/tak.sch
 Configurations explored: 70
 States explored: 239
+fib
+Configurations explored: 67
+States explored: 108
 
 k=1  policy=p4f
 -----------------
@@ -129,6 +102,9 @@ States explored: 27
 benchmarks/larceny/tak.sch
 Configurations explored: 34
 States explored: 133
+fib
+Configurations explored: 63
+States explored: 209
 
 k=1  policy=aac
 -----------------
@@ -162,6 +138,9 @@ States explored: 73
 benchmarks/larceny/tak.sch
 Configurations explored: 214
 States explored: 1420
+fib
+Configurations explored: 738
+States explored: 2273
 
 k=1  policy=h-CFA
 -----------------
@@ -195,3 +174,6 @@ States explored: 18
 benchmarks/larceny/tak.sch
 Configurations explored: 214
 States explored: 945
+fib
+Configurations explored: 837
+States explored: 1928

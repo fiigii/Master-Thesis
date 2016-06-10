@@ -556,6 +556,10 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 \section{Static Analysis of JavaScript}
 \label{sec:Static Analysis of JavaScript}
 
+\subsection{Semantics of JsCFA}
+\label{sub:Semantics of JsCFA}
+
+
 \subsection{Abstract Garbage Collection as Stack Filtering}
 \label{sub:Abstract Garbage Collection as Stack Filtering}
 In practice, call/return perfect match only working with monovariant analysis is useless. Please consider the first simple example in section~\ref{Introduction} again, if our abstract interpreter can match call/return flows perfect, variable ``a'' would get value ``1'' after executing call site 1. Then, when call site 2 invokes function ``id'' again, the new argument ``\#t'' merges with ``1'' passed into ``x'' by call site 1. Then, the merged abstract value $\{1, \#t\}$ returns to variable ``b''.
@@ -563,7 +567,13 @@ Meanwhile, this spurious analysis result will flow into following interpretation
 Traditional \textit{k}-CFA attempts to resolve this problem via introducing context-sensitive (polyvariant) analysis. However, polyvariance is not a efficient and powerful solution to this problem.
 
 The essential reason why different actual parameters merge into same formal parameters is monovariant abstract interpreters breaking the concrete semantics. Concrete interpreters never merge parameters from different call sites because local variables will be deleted when the interpreter exits from the function.
-Consequently, CFA2 invents an approach named ``stack filtering'' making it more useful. Stack filtering simulates the semantics of popping call stack frames to remove useless values of local variables. However, there are two limitations that lead stack filtering not being able to migrate in AAM\@. On the one hand, like Java, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. On the other hand, we cannot always pop call stack frames after function returns because section~\ref{sub:Polyvariant Continuation} mentions that continuation stores may becomes graphs rather than stacks.
+Consequently, CFA2 invents an approach named ``stack filtering'' making it more useful, which just returns \#t to variable ``b''. Stack filtering simulates the semantics of popping call stack frames to remove useless values of local variables. However, there are two limitations that lead stack filtering not being able to port to AAM\@. On the one hand, like Java, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. On the other hand, we cannot always pop call stack frames after function returns because section~\ref{sub:Polyvariant Continuation} mentions that continuation stores may becomes graphs rather than stacks.
+
+Introspective pushdown control flow analysis described by XXX integrates abstract garbage collection ($\Gamma$-CFA) in PDCFA to implement the stack filtering. JsCFA also adopts this strategy to improve analysis precision and make call/return match more useful. The semantics of abstract garbage collection is same with its counterparts in concrete interpreters/runtimes.
+We first scan current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' catch variables. Every address reached in last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by addresses that do not appear in mark set are regarded as garbage.
+
+However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically take experiential complexity, in practice its performance much better than global store without abstract GC\@.
+Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only evaluation states may change the store, so application and continuation states interpreted between two evaluation states share one store. Secondly, during abstract GC running, garbage values will not be deleted. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values).
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:Abstract Garbage Collection as Popping Call Stack Frames}
 In this section, we show how to give up execution history and apply our theory for direct-style AST\@.
