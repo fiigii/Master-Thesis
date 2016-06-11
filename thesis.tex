@@ -1,13 +1,15 @@
 \documentclass{article}
 \usepackage{amsmath,amsthm}
 \usepackage{amssymb}
+\usepackage{xcolor}
 \usepackage{listings}
 \usepackage{flexisym}
 \usepackage{graphicx}
-\usepackage{lscape}
-\usepackage{rotating}
+\usepackage{courier}
 \usepackage{pgfplots}
-\pgfplotsset{width=10cm,compat=newest}
+\pgfplotsset{width=7cm,compat=newest}
+
+\lstset{basicstyle=\footnotesize\ttfamily}
 %\usepackage{titling}
 \makeatletter
 \def\tagform@#1{\maketag@@@{[\ignorespaces#1\unskip\@@italiccorr]}}
@@ -26,7 +28,9 @@ Meanwhile, abstracting abstract machine (AAM) a configurable framework for const
 \label{Introduction}
 Dynamic programming languages (e.g. JavaScript, Python, and Ruby, etc.) play a significant role in a lot of computing areas, such as system management, web development, and scientific computing. Especially, in the past decade, JavaScript becomes a ubiquitous computing environment. However, their certain features (e.g.\ duck-typing, first-class function, highly dynamic object model) make bug detection difficult. Control flow  analysis becomes a good approach to detect deeply semantic defect before actual running programs, but original control flow analysis (\textit{k}-CFA) is too imprecise to apply in realized programs. For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces precision of analysis.
 
-\lstset{language=Lisp, mathescape}
+\lstset{language=Lisp,
+mathescape,
+keywords={let,lambda}}
 \begin{lstlisting}
 
   (let* ((id (lambda (x) x))
@@ -85,7 +89,7 @@ State transition graphs of: (1) P4F (pushdown control flow analysis for free) wi
 
 \begin{figure}
   \small
-  \lstset{language=Lisp}
+  \lstset{language=Lisp, keywords={define}}
   \begin{lstlisting}
   (define (fib n)
     (if (< n 3)
@@ -402,7 +406,8 @@ Let's exam the analysis process of a simple example to understand \textit{h}-CFA
 
 \begin{figure}[h]
 \small
-\lstset{language=Lisp}
+\lstset{language=Lisp,
+keywords={letrec,lambda,let}}
 \begin{lstlisting}
   (letrec ((fib (lambda (n)
                   (let ((res1 (< n 3)))
@@ -487,9 +492,9 @@ Theoretically, native implementations of above definitions take exponential time
 
 Abstracting abstract machines usually adopt widening on stores and continuation stores. Store widening uses a global store (single-threaded store, Shivers []) rather than per-state stores for values and continuations respectively.
 
-\begin{figure}[h]
-\small
-\centering
+\begin{figure}
+  \centering
+\minipage{0.32\textwidth}
 \begin{tikzpicture}
 \begin{axis}[
 	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
@@ -513,11 +518,8 @@ coordinates {(mj09,37) (eta,22)
 \end{tikzpicture}
 \caption{monovariant analysis comparison}
 \label{0-benchmark}
-\end{figure}
-
-\begin{figure}[h]
-  \small
-  \centering
+\endminipage\hfill
+\minipage{0.32\textwidth}
 \begin{tikzpicture}
 \begin{axis}[
 	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
@@ -545,6 +547,7 @@ coordinates {(mj09,55) (eta,26)
 \end{tikzpicture}
 \caption{1-call-site sensitive analysis comparison}
 \label{1-benchmark}
+\endminipage\hfill
 \end{figure}
 
 \subsection{Defect of \textit{h}-CFA}
@@ -558,64 +561,70 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 \subsection{Semantics of JsCFA}
 \label{sub:Semantics of JsCFA}
 The abstract semantics of JsCFA is derived from JAM a unbounded stack semantics for JavaScript analysis. JAM describes a pushdown reduction semantics in $\lambda_{JS}$-calculus, and we modify it to work with direct high level AST of JavaScript in CESK abstract machine. The abstract syntax tree interface is given in figure~\ref{fig:js-stmt} and figure~\ref{fig:js-expr}.
-All the data structures are separated to two categories that inherit from abstract class ``Statement'' and ``Expression'' respectively. Trait ``AbstractSyntaxTree'' defines field ``id'' to encode the statically and uniquely syntactic label for each AST node. The top level of a paogram is a sequence of statements warped in ``Script''.
+All the data structures are separated to two categories that inherit from abstract class ``Statement'' and ``Expression'' respectively. Trait ``AbstractSyntaxTree'' defines field ``id'' to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method ``generateFrome'' that spreads the statically syntactic information from AST nodes to local continuations and values. The top level of a paogram is a sequence of statements warped in ``Script''.
 
-\begin{figure}[ht]
+\begin{figure}[h]
 %\small
-\lstset{language=Scala}
+\lstset{language=Scala,
+frame=single,
+breaklines=true,
+postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}}
 \begin{lstlisting}
   sealed abstract class Statement extends AbstractSyntaxTree
 
-  case class Script(stmts : List[Statement]) extends  Statement
-  case class BlockStmt(stmts : List[Statement]) extends Statement
-  case class VarDeclListStmt(decls : List[Statement]) extends Statement
+  case class Script(stmts: List[Statement]) extends  Statement
+  case class BlockStmt(stmts: List[Statement]) extends Statement
+  case class VarDeclListStmt(decls: List[Statement]) extends Statement
   case class EmptyStmt() extends Statement
-  case class ExprStmt(expr : Expression) extends Statement()
-  case class VarDeclStmt(name : IntroduceVar, expr : Expression) extends Statement
-  case class FunctionDecl(name : IntroduceVar, fun : Expression) extends Statement
-  case class ReturnStmt(expr : Expression) extends Statement
-  case class IfStmt(cond : Expression, thenPart : Statement, elsePart : Statement) extends Statement
-  case class SwitchStmt(cond : Expression, cases : List[CaseStmt], defaultCase : Option[CaseStmt]) extends Statement
-  case class CaseStmt(expr : Expression, body : Statement) extends Statement
-  case class ContinueStmt(continueLabel : String) extends Statement
-  case class DoWhileStmt(cond : Expression, body : Statement) extends Statement
-  case class WhileStmt(cond : Expression, body : Statement) extends Statement
-  case class ForStmt(init : ForInit, cond : Option[Expression], increment : Option[Expression], body : Statement) extends Statement
-  case class ForInStmt(init : ForInInit, expr : Expression, body : Statement) extends Statement
+  case class ExprStmt(expr: Expression) extends Statement()
+  case class VarDeclStmt(name: IntroduceVar, expr: Expression) extends Statement
+  case class FunctionDecl(name: IntroduceVar, fun: Expression) extends Statement
+  case class ReturnStmt(expr: Expression) extends Statement
+  case class IfStmt(cond: Expression, thenPart: Statement, elsePart: Statement) extends Statement
+  case class SwitchStmt(cond: Expression, cases: List[CaseStmt], defaultCase: Option[CaseStmt]) extends Statement
+  case class CaseStmt(expr: Expression, body: Statement) extends Statement
+  case class ContinueStmt(continueLabel: String) extends Statement
+  case class DoWhileStmt(cond: Expression, body: Statement) extends Statement
+  case class WhileStmt(cond: Expression, body: Statement) extends Statement
+  case class ForStmt(init: ForInit, cond: Option[Expression], increment: Option[Expression], body: Statement) extends Statement
+  case class ForInStmt(init: ForInInit, expr: Expression, body: Statement) extends Statement
 
 \end{lstlisting}
 \caption{Abstract syntax tree data types of statements}
 \label{fig:js-stmt}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}
 %\small
-\lstset{language=Scala}
+\lstset{language=Scala,
+frame=single,
+breaklines=true,
+postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}}
 \begin{lstlisting}
   sealed abstract class Expression extends AbstractSyntaxTree
 
   case class EmptyExpr() extends Expression
-  case class FunctionExpr(name : Option[IntroduceVar], ps : List[IntroduceVar], body : Statement) extends Expression with ObjectGeneratePoint
-  case class VarRef(name : String) extends Expression with VariableAccess
+  case class FunctionExpr(name: Option[IntroduceVar], ps: List[IntroduceVar], body: Statement) extends Expression with ObjectGeneratePoint
+  case class VarRef(name: String) extends Expression with VariableAccess
   case class ThisRef() extends Expression
-  case class DotRef(obj : Expression, prop : String) extends Expression
-  case class BracketRef(obj : Expression, prop : Expression) extends Expression
-  case class MethodCall(receiver : Expression, method : Expression, args : List[Expression]) extends Expression
-  case class FuncCall(func : Expression, args : List[Expression]) extends Expression
-  case class NewCall(constructor : Expression, args : List[Expression]) extends Expression with ObjectGeneratePoint
-  case class AssignExpr(op : AssignOp, lv : LValue, expr : Expression) extends Expression
+  case class DotRef(obj: Expression, prop: String) extends Expression
+  case class BracketRef(obj: Expression, prop: Expression) extends Expression
+  case class MethodCall(receiver: Expression, method: Expression, args: List[Expression]) extends Expression
+  case class FuncCall(func: Expression, args: List[Expression]) extends Expression
+  case class NewCall(constructor: Expression, args: List[Expression]) extends Expression with ObjectGeneratePoint
+  case class AssignExpr(op: AssignOp, lv: LValue, expr: Expression) extends Expression
   case class NullLit() extends Expression
-  case class BoolLit(value : Boolean) extends Expression
-  case class NumberLit(value : Double) extends Expression
-  case class StringLit(value : String) extends Expression
-  case class RegExp(regexp : String, global : Boolean, case_insensitive : Boolean) extends Expression with ObjectGeneratePoint
-  case class ObjectLit(obj : List[ObjectPair]) extends Expression with ObjectGeneratePoint
-  case class ArrayLit(vs : List[Expression]) extends Expression with ObjectGeneratePoint
-  case class UnaryAssignExpr(op : UnaryAssignOp, lv: LValue) extends Expression
-  case class PrefixExpr(op : PrefixOp, expr : Expression) extends Expression
-  case class InfixExpr(op : InfixOp, expr1 : Expression, expr2 : Expression) extends Expression
-  case class CondExpr(cond : Expression, thenPart : Expression, elsePart : Expression) extends Expression
-  case class ListExpr(exprs : List[Expression]) extends Expression
+  case class BoolLit(value: Boolean) extends Expression
+  case class NumberLit(value: Double) extends Expression
+  case class StringLit(value: String) extends Expression
+  case class RegExp(regexp: String, global: Boolean, case_insensitive: Boolean) extends Expression with ObjectGeneratePoint
+  case class ObjectLit(obj: List[ObjectPair]) extends Expression with ObjectGeneratePoint
+  case class ArrayLit(vs: List[Expression]) extends Expression with ObjectGeneratePoint
+  case class UnaryAssignExpr(op: UnaryAssignOp, lv: LValue) extends Expression
+  case class PrefixExpr(op: PrefixOp, expr: Expression) extends Expression
+  case class InfixExpr(op: InfixOp, expr1: Expression, expr2: Expression) extends Expression
+  case class CondExpr(cond: Expression, thenPart: Expression, elsePart: Expression) extends Expression
+  case class ListExpr(exprs: List[Expression]) extends Expression
 \end{lstlisting}
 \caption{Abstract syntax tree data types of expressions}
 \label{fig:js-expr}
@@ -648,16 +657,19 @@ If the control string is a value (instance of class ``JSValue''), analysis would
 If the current state is a complete state that its every recursive component is already computed to a value, the abstract machine transits to application to execute main semantics of the AST node. Eventually, when the control string is neither value nor reducible expression/statement, the machine generate the new continuation according to semantics of standard JavaScript. Then the new continuation is pushed on the local stack and the machine proceed to evaluate the program point whose computing result is required firstly.
 
 
-\begin{figure}[h]
+\begin{figure}
 %\small
-\lstset{language=Scala}
+\lstset{language=Scala, mathescape}
 \begin{lstlisting}
   def transitEvaluation(state: State): Set[State] = state match {
     case completeState if isComplete(completeState) =>
         transitApplication(state)
     case State(v, env, localStack, a, memory) if isJSValue(v) =>
-        transitContinuation(topOfLocalStack(localStack), v, env, popLocalStack(localStack), a, memory)
+        val cont = topOfLocalStack(localStack)
+        val newStack = popLocalStack(localStack)
+        transitContinuation(cont, v, env, newStack, a, memory)
 
+    //statements
     case State(Script(Nil), env, localStack, a, memory) =>
         Set(State(Halt, env, localStack, a, memory))
     case State(Script(stmt :: ss), env, localStack, a, memory) =>
@@ -666,13 +678,250 @@ If the current state is a complete state that its every recursive component is a
         val newStack = pushLocalStack(localStack, k)
         Set(State(stmt, env, newStack, a, memory))
 
+    case State(ReturnStmt(e), env, localStack, a, memory) =>
+        val k = KReturn()
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(e, env, newStack, a, memory))
+
+    case State(IfStmt(cond, t, e), env, localStack, a, memory) =>
+        val k = KIfCond(t, e)
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(cond, env, newStack, a, memory))
+    $\dots$
+
+    //expressions
+    case State(FuncCall(func, args), env, localStack, a, memory) =>
+        val k = KFuncCallF(args)
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(func, env, newStack, a, memory))
+
+    case State(AssignExpr(op, lv, expr), env, localStack, a, memory) =>
+        val k = KAssignR(op, lv)
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(expr, env, newStack, a, memory))
+
+    case State(InfixExpr(op, e1, e2), env, localStack, a, memory) =>
+        val k = KInfixL(op, e2)
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(e1, env, newStack, a, memory))
+    $\dots$
+
   }
 \end{lstlisting}
 \caption{Parts of Evaluation Transition Rules}
 \label{fig:eval}
 \end{figure}
 
-Continuation transitions
+Continuation transitions work on components that state objects have and a extra \emph{next continuation} (referred to ``cont'' in figure~\ref{fig:cont-stmt} and figure~\ref{fig:cont-expr}). Control strings in these transition states are alway values, so abstract machines dispatch transitions via matching ``cont'' and plug the value into a new continuation. If the new continuation object is a reducible expression/statement, the next machine states will transition to application states. Otherwise, the new continuation that contains the value of control string is pushed into the local stack. Then, the following computating will be dispatched by next evaluation states.
+Finally, there is a special continuation state in JavaScript semantics. If no next continuation exists in the local stack (local stack is empty), that means the function does not have return statement through the current execution path. Therefore, we also implement ``return'' semantics at this point that the executing function returns ``undefined'' to its next return point restored from stack frames.
+
+\begin{figure}
+\lstset{language=Scala, mathescape}
+\begin{lstlisting}
+  def transitContinuation(cont: Continuation,
+                          value: JSValue,
+                          env: Environment,
+                          localStack: LocalStack,
+                          a: StackAddress,
+                          memory: Memory): Set[State] = cont match {
+    case KScript(Nil) =>
+        Set(State(Halt, env, localStack, a, memory))
+    case KScript(s :: ss) =>
+        val k = KScript(ss)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(s, env, newStack, a, memory))
+
+    case KReturn() =>
+        val k = KReturnComplete(value)
+        k.generateFrom(cont)
+        Set(State(k, env, localStack, a, memory))
+
+    case KIfCond(t, e) =>
+        val k = KIfComplete(value, t, e)
+        k.generateFrom(cont)
+        Set(State(k, env, localStack, a, memory))
+    $\dots$
+\end{lstlisting}
+\caption{Parts of Continuation Transition Rules for Statements}
+\label{fig:cont-stmt}
+\end{figure}
+
+\begin{figure}
+\lstset{language=Scala, mathescape}
+\begin{lstlisting}
+    case KFuncCallF(Nil) =>
+        val k = KFuncCallA(value, Nil, Nil)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(cachedUndefined, env, newStack, a, memory))
+
+    case KFuncCallF(arg :: args) =>
+        val k = KFuncCallA(value, Nil, args)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(arg, env, newStack, a, memory))
+
+    case KFuncCallA(func, before, Nil) =>
+        val k = KFuncCallComplete(func, before ++ List(value))
+        k.generateFrom(cont)
+        Set(State(k, env, localStack, a, memory))
+
+    case KFuncCallA(func, before, arg :: args) =>
+        val k = KFuncCallA(func, before ++ List(value), args)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(arg, env, newStack, a, memory))
+
+    case KAssignR(op, lv) =>
+        val k = KAssignL(op, value)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(lv, env, newStack, a, memory))
+
+    case KAssignL(op, rv) =>
+        val k = KAssignExprComplete(op, value, rv)
+        k.generateFrom(cont)
+        Set(State(k, env, localStack, a, memory))
+
+    case KInfixL(op, e2) =>
+        val k = KInfixR(op, value)
+        k.generateFrom(cont)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(e2, env, newStack, a, memory))
+
+    case KInfixR(op, e1) =>
+        val k = KInfixExprComplete(op, e1, value)
+        k.generateFrom(cont)
+        Set(State(k, env, localStack, a, memory))
+    $\dots$
+  }
+\end{lstlisting}
+\caption{Parts of Continuation Transition Rules for Expressions}
+\label{fig:cont-expr}
+\end{figure}
+
+\begin{figure}
+\lstset{language=Scala, mathescape}
+\begin{lstlisting}
+def transitApplication(state: State): Set[State] = state match {
+  case State(KReturnComplete(v), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      for {
+        GlobalFrame(returnPoint, oldStack, savedEnv, newGlobalAddress)
+            <- newMemory.globalFrames(a)
+      } yield {
+        if(oldStack.isEmpty || !oldStack.head.isInstanceOf[KUseValue]) {
+          newMemory.getValue(v).foreach(newMemory.putValue(returnPoint, _))
+        }
+        State(returnPoint, savedEnv, oldStack, newGlobalAddress, newMemory)
+      }
+
+  case State(KIfComplete(cond, t, e), env, localStack, a, memory) =>
+      for {
+        obj <- memory.getValue(cond)
+        boolValue = ToBoolean(obj)
+        res <- boolValue match {
+          case JSBoolean(ConstantBoolean(true)) =>
+              Set(State(t, env, localStack, a, memory))
+          case JSBoolean(ConstantBoolean(false)) =>
+              Set(State(e, env, localStack, a, memory))
+          case JSBoolean(VariableBoolean) =>
+              Set(State(t, env, localStack, a, memory),
+              State(e, env, localStack, a, memory))
+        }
+      } yield res
+  $\dots$
+
+\end{lstlisting}
+\caption{Parts of Application Transition Rules for Statements}
+\label{fig:app-stmt}
+\end{figure}
+
+\begin{figure}
+\lstset{language=Scala, mathescape}
+\begin{lstlisting}
+  case State(VarRef(x), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      val xRef = lookup(env, x)
+      newMemory.getValue(xRef).foreach(newMemory.putValue(JSReference(state.e.id), _))
+      Set(State(JSReference(state.e.id), env, localStack, a, newMemory))
+
+  case State(LVarRef(x), env, localStack, a, memory) =>
+      val xRef = lookup(env, x)
+      Set(State(xRef, env, localStack, a, memory))
+
+  case State(f@FunctionExpr(name, ps, body), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      val functionObject = createFunctionObject(f, env, newMemory)
+      val value = newMemory.save(functionObject)
+      Set(State(value, env, localStack, a, newMemory))
+
+  case State(NullLit(), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      val newAddress = alloc(state.e)
+      newMemory.putValue(newAddress, JSNull)
+      Set(State(newAddress, env, localStack, a, newMemory))
+
+  case State(NumberLit(num), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      val number = JSNumber(ConstantNumber(num))
+      number.generateFrom(state.e)
+      val value = newMemory.save(number)
+      Set(State(value, env, localStack, a, newMemory))
+
+  case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      for {
+          f <- newMemory.getValue(funcRef)
+          if isCallable(f)
+          JSClosure(func@FunctionExpr(name, ps, funcBody), savedEnv) = f.asInstanceOf[JSObject].code
+      } yield {
+          val psAddress = ps.map(alloc(_))
+          val thisAddress = biGlobalObjectRef
+          var newEnvPart = ("this" -> thisAddress) :: ps.map(x => x.str).zip(psAddress)
+          name match {
+            case Some(x) => newEnvPart = (x.str -> alloc(x)) :: newEnvPart
+            case None =>
+          }
+          val newEnv = savedEnv ++ Map(newEnvPart: _*)
+
+          psAddress.zip(args).foreach[Unit]((p: (JSReference, JSValue)) =>
+            newMemory.getValue(p._2).foreach(newMemory.putValue(p._1, _)))
+          val nextAddress = allocStackAddress(state, funcBody, newEnv)
+          newMemory.pushGlobalStack(nextAddress, GlobalFrame(alloc(state.e), localStack, env, a))
+          State(funcBody, newEnv, emptyLocalStack, nextAddress, newMemory)
+      }
+
+  case State(KAssignExprComplete(op, lv, rv), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      for(value <- newMemory.getValue(rv)) {
+          newMemory.putValue(lv.asInstanceOf[JSReference], value)
+      }
+      Set(State(rv, env, localStack, a, newMemory))
+
+  case State(KInfixExprComplete(op, rv1, rv2), env, localStack, a, memory) =>
+      val newMemory = memory.copy(state)
+      for {
+          v1 <- newMemory.getValue(rv1)
+          v2 <- newMemory.getValue(rv2)
+      } yield {
+          val res = infixFunc(op, v1, v2, newMemory)
+          res.generateFrom(state.e)
+          val address = newMemory.save(res)
+          State(address, env, localStack, a, newMemory)
+      }
+  $\dots$
+}
+\end{lstlisting}
+\caption{Parts of Application Transition Rules for Expressions}
+\label{fig:app}
+\end{figure}
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
 \label{sub:Abstract Garbage Collection as Stack Filtering}
@@ -687,7 +936,7 @@ Introspective pushdown control flow analysis described by XXX integrates abstrac
 We first scan current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' caught variables. Every address reached in last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by addresses that do not appear in mark set are regarded as garbage.
 
 However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically take experiential complexity, in practice its performance much better than global store without abstract GC\@.
-Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only application states may change the store, so evaluation and continuation states interpreted between two application states share one store. Secondly, during abstract GC running, garbage values will not be directly deleted. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values).
+Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only application states may change the store, so evaluation and continuation states interpreted between two application states share one store. Secondly, abstract GC running never directly deletes values even they are detected as garbage. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values) to eliminate the overhead of imperative deleting elements in stores.
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:Abstract Garbage Collection as Popping Call Stack Frames}
 In this section, we show how to give up execution history and apply our theory for direct-style AST\@.
