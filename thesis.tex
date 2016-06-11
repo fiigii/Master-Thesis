@@ -558,7 +558,7 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 \subsection{Semantics of JsCFA}
 \label{sub:Semantics of JsCFA}
 The abstract semantics of JsCFA is derived from JAM a unbounded stack semantics for JavaScript analysis. JAM describes a pushdown reduction semantics in $\lambda_{JS}$-calculus, and we modify it to work with direct high level AST of JavaScript in CESK abstract machine. The abstract syntax tree interface is given in figure~\ref{fig:js-stmt} and figure~\ref{fig:js-expr}.
-All the data structures are separated to two categories that inherit from abstract class ``Statement'' and ``Expression'' respectively. Trait ``AbstractSyntaxTree'' defines field ``id'' to encode the statically and uniquely syntactic label for each AST node.
+All the data structures are separated to two categories that inherit from abstract class ``Statement'' and ``Expression'' respectively. Trait ``AbstractSyntaxTree'' defines field ``id'' to encode the statically and uniquely syntactic label for each AST node. The top level of a paogram is a sequence of statements warped in ``Script''.
 
 \begin{figure}[ht]
 %\small
@@ -595,11 +595,7 @@ All the data structures are separated to two categories that inherit from abstra
   sealed abstract class Expression extends AbstractSyntaxTree
 
   case class EmptyExpr() extends Expression
-  case class FunctionExpr(name : Option[IntroduceVar], ps : List[IntroduceVar], body : Statement) extends Expression with ObjectGeneratePoint{
-    var sourceCode : String = ""
-    var prototypeID : Label = -1
-    var freeVariables = Set.empty[String]
-  }
+  case class FunctionExpr(name : Option[IntroduceVar], ps : List[IntroduceVar], body : Statement) extends Expression with ObjectGeneratePoint
   case class VarRef(name : String) extends Expression with VariableAccess
   case class ThisRef() extends Expression
   case class DotRef(obj : Expression, prop : String) extends Expression
@@ -635,8 +631,8 @@ The core data structure of the AAM of JsCFA is class ``State'' (corresponding to
                    a: StackAddress,
                    memory: Memory)
 
-  case class Memory(store : mutable.Map[JSReference, Set[JSValue]],
-                    stack : mutable.Map[StackAddress, Set[GlobalFrame]]) {
+  case class Memory(store: mutable.Map[JSReference, Set[JSValue]],
+                    stack: mutable.Map[StackAddress, Set[GlobalFrame]]) {
     $\dots$
   }
 \end{lstlisting}
@@ -645,7 +641,38 @@ Above definition shows two differences from original AAM and \textit{h}-CFA\@. C
 Meanwhile, there is an extra fild ``localStack'' playing the role of intro-procedural continuation stack, but AAM and \textit{h}-CFA not. In \textit{h}-CFA, before analysis, ANF transformation already flats all intro-procedural control flows to let-binding, so it just need to tackle inter-procedural continuations in stores. Besides, original AAM saves all of the continuations (inter and intro-procedural) into continuation stores, but actually only inter-procedural control flows have to be retrieved nondeterministically and intro-procedural continuations are always deterministic.
 Consequently, we partition continuations in two places that make semantics clearer and performance better.
 
-Following JAM, the abstracting abstract machine of JsCFA also distinguish three types of machine states: evaluation, continuation, and application.
+Following JAM, the abstracting abstract machine of JsCFA also distinguish three types of transition states: evaluation, continuation, and application.
+
+Evaluation transition rules accept a state and match its control string component to generate next states. Evaluation transitions firstly search values and reducible expressions/statements (we refer states carry reducible expressions/statements to complete states in JsCFA) in the control strings.
+If the control string is a value (instance of class ``JSValue''), analysis would be dispatched to a continuation transition that depends upon  the following control flow step retrieved from the top of local stack. Then the continuation transition determines how to use the value.
+If the current state is a complete state that its every recursive component is already computed to a value, the abstract machine transits to application to execute main semantics of the AST node. Eventually, when the control string is neither value nor reducible expression/statement, the machine generate the new continuation according to semantics of standard JavaScript. Then the new continuation is pushed on the local stack and the machine proceed to evaluate the program point whose computing result is required firstly.
+
+
+\begin{figure}[h]
+%\small
+\lstset{language=Scala}
+\begin{lstlisting}
+  def transitEvaluation(state: State): Set[State] = state match {
+    case completeState if isComplete(completeState) =>
+        transitApplication(state)
+    case State(v, env, localStack, a, memory) if isJSValue(v) =>
+        transitContinuation(topOfLocalStack(localStack), v, env, popLocalStack(localStack), a, memory)
+
+    case State(Script(Nil), env, localStack, a, memory) =>
+        Set(State(Halt, env, localStack, a, memory))
+    case State(Script(stmt :: ss), env, localStack, a, memory) =>
+        val k = KScript(ss)
+        k.generateFrom(state.e)
+        val newStack = pushLocalStack(localStack, k)
+        Set(State(stmt, env, newStack, a, memory))
+
+  }
+\end{lstlisting}
+\caption{Parts of Evaluation Transition Rules}
+\label{fig:eval}
+\end{figure}
+
+Continuation transitions
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
 \label{sub:Abstract Garbage Collection as Stack Filtering}
