@@ -1,4 +1,7 @@
- 
+
 .thesis.tex.swp
-thesis.aux
-thesis.tex~
+*.aux
+*.tex~
+*.log
+*.gz
+*.log
