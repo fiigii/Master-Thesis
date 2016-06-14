@@ -632,6 +632,11 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 
 \section{Static Analysis of JavaScript}
 \label{sec:Static Analysis of JavaScript}
+JavaScript becomes a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
+In traditional software engineering area, static analysis have become an effective technology to help human to detect deep semantic errors and defects, but the state-of-art in JavaScript static analysis is still not a patch on static languages such as C/C++ and Java.
+
+One of the most critical reason that cause the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of functions. In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site. Simultaneously, JavaScript heavy relies on first-class functions to implement certain extra high-level semantics, such as methods, block scoping, and module import/export, etc.
+Consequently, we developed JsCFA, a abstract interpreter for JavaScript that based on \textit{h}-CFA computes more precise control flow analysis, points-to analysis, and constant propagation. Although JsCFA works out almost monovariant, context-insensitive analysis results, based on AAM, context-sensitivity is easily obtained and configurable.
 
 \subsection{Semantics of JsCFA}
 \label{sub:Semantics of JsCFA}
