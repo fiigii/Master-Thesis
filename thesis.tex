@@ -9,6 +9,25 @@
 \usepackage{pgfplots}
 \pgfplotsset{width=7cm,compat=newest}
 
+% "define" Scala
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+
+
 \lstset{basicstyle=\footnotesize\ttfamily}
 %\usepackage{titling}
 \makeatletter
@@ -20,36 +39,85 @@
 \maketitle
 %\tableofcontents
 \begin{abstract}
-In traditional control flow analysis area, call/return mismatch is always a problem that dramatically reduces precision of analysis. Although, original \textit{k}-CFA uses bounded call strings to acquire limited call/return exact match, this technique causes serious performance cost due to it coupling call/return match strategies with context-sensitivity of values.
-Meanwhile, abstracting abstract machine (AAM) a configurable framework for constructing abstract interpreters introduces store-allocated continuation that makes soundness of abstract interpreters easily acquired. Recently, there are three different approaches (PDCFA, AAC, and P4F) published, which provide perfect call/return match for AAM via modeling call stacks as pushdown systems. However, PDCFA needs extra annotated edges to represent stack actions that leads implementing become difficult. AAC requires expensive overhead, and P4F cannot work with monovariance (0-CFA). Consequently, we developed a new method to address the call/return mismatch problem that is extremely easy to implement for ANF style program in abstracting abstract machine. Simultaneously, this method reveals the essence of pushdown control flow analysis, and we exploit the essence to develop a static analyzer for JavaScript with direct abstract syntax tree.
+In control flow analysis (CFA), call/return mismatch is always a problem that dramatically reduces analysis precision. Original \textit{k}-CFA uses bounded call strings to obtain limited call/return matching but it has serious performance problem 
+due to its coupling of call/return matching with context-sensitivity of values.
+Meanwhile, Abstracting Abstract Machine (AAM), a configurable framework for constructing abstract interpreters, 
+introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable. 
+Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide perfect call/return matching for AAM by modeling call-stack as a pushdown system. 
+However, PDCFA needs extra annotated edges to represent stack actions that leads to implementation difficulty. 
+AAC incurs high overhead while P4F cannot work with monovariant analysis (0-CFA). 
+To overcome the above shortcomings, we developed a new method to address the call/return mismatch problem. 
+Our method uses AAM and is very easy to implement for ANF style program. 
+Simultaneously, our method reveals an essential property of pushdown CFA, 
+which we exploited in the development of a static analyzer for JavaScript without ANF transformation.
 
 \end{abstract}
 \section{Introduction}
 \label{Introduction}
-Dynamic programming languages (e.g. JavaScript, Python, and Ruby, etc.) play a significant role in a lot of computing areas, such as system management, web development, and scientific computing. Especially, in the past decade, JavaScript becomes a ubiquitous computing environment. However, their certain features (e.g.\ duck-typing, first-class function, highly dynamic object model) make bug detection difficult. Control flow  analysis becomes a good approach to detect deeply semantic defect before actual running programs, but original control flow analysis (\textit{k}-CFA) is too imprecise to apply in realized programs. For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces precision of analysis.
+Dynamic programming languages, such as JavaScript, Python, and Ruby, play a significant role in computing areas, such as system management, web development, and scientific computing. 
+Over the past decade, JavaScript has become a ubiquitous computing environment. 
+However, certain features of JavaScript (e.g. duck-typing, first-class function, and highly dynamic object model) make error detection difficult. 
+To this end, CFA has become a viable approach to detect deep semantic defects before actual running of JavaScript programs. 
+However, the original CFA (i.e. \textit{k}-CFA) is too imprecise for realistic programs. 
+For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces the precision of analysis.
 
+\begin{figure}
 \lstset{language=Lisp,
 mathescape,
 keywords={let,lambda}}
 \begin{lstlisting}
-
   (let* ((id (lambda (x) x))
          (a (id 1)$^1$)
          (b (id #t)$^2$))
       a)
-
 \end{lstlisting}
+\caption{An example program that causes 0-CFA to produce imprecise results.}
+\label{fig:eg1}
+\end{figure}
 
+Consider the trivial example in Figure~\ref{fig:eg1}, where, in 0-CFA, the \verb|id| function is called twice and \verb|#t| finally flows into variable \verb|a| because there is a spurious flow from call site \verb|(id #t)| to \verb|(a (id 1))|. 
+In \textit{k}-CFA ($k \geq 1$), the values of the local variable \verb|x| are distinguished by different call site environments. 
+To illustrate this, $(x, 2) \mapsto \#t$ means that the value of \verb|x| is \verb|#t| in call site 2, and original \textit{k}-CFA also can use the values' environment to filter inter-procedural control flows, which means that the value of \verb|x| from call site 2 only can be returned to \verb|(b (id #t))|. 
+In this case (non-recursive program), call string with finite length is enough to provide precise call/return flow (both value and control flow). 
+However, any recursive function call will break the rule and propagate spurious information to the whole program. 
+Meanwhile, the performance is unacceptable even when $k = 1$.
 
-Let's consider about the trivial example, in traditional 0-CFA the id function is called twice and \#t finally flows into variable a because there is a spurious flow from call site (id \#t) return to (a (id 1)). In \textit{k}-CFA (k $\geq$ 1), the values of local variable x are distinguished by different call site environments. To illustrate, $(x, 2) \longrightarrow \#t$ means that the value of x is \#t in call site 2, and original \textit{k}-CFA also can use the values' environment to filter inter-procedure control flows, which value of x from call site 2 only can be returned to (b (id \#t)). In this case (non-recursive program), call string with finite length is enough for providing precise call/return flow (value and control flow both). However, any recursive function call will break the rule and propagate spurious information to the whole program. Meanwhile, the performance is unacceptable even when k is 1.
+\subsection{Pushdown CFA}
+The core idea of pushdown CFA is to mimic call/return flow as a unbounded call stack for ordinary calls and to summarize the call stack for recursive calls because unbounded call stack is uncomputable in static analysis. 
+CFA2 %% TODO: citation 
+implements the summarization with a tabulate algorithm, %% TODO: right name and citation? 
+and PDCFA %% TODO: citation 
+annotates state transition edges with stack actions (push, pop, and no action).
+Both of CFA2 and PDCFA introduce extra semantics for the target language, which makes the abstract interpreter hard to implement.
+Fortunately, XXX %% TODO: who?  
+invented Abstracting Abstract Machine (AAM) %% TODO: citation 
+as a configurable framework for constructing abstract interpreters in the CESK abstract machine style. %% TODO: citation 
+AAM not only allocates values in the store (like the original \textit{k}-CFA does), but also represents control flow as store-allocated continuations. 
+In AAM, each CESK state does not directly carry continuation, but a continuation address that refers to a set of continuations in the store. 
+Merging several continuations in one continuation address achieves the effect of approximating control flows. 
+Meanwhile, AAM brings two benefits to control flow analysis. 
+On one hand, it makes the soundness of abstract interpreters easily acquired because values and continuations are both in the store and 
+the store size is fixed. 
+On the other hand, store-allocated continuation separates the original context-sensitivity (polyvariant values) strategies from 
+the call/return matching techniques.
+AAC and P4F, %% TODO: citation 
+both based on AAM, convert call/return matching problem to continuation-address allocation strategy. 
+However, AAC incurs high overhead, $O(n^9)$, which puts too much information in the continuation addresses. 
+P4F reduced the complexity of AAC, but it is not useful for monovariant analysis.
 
-The core idea of pushdown control flow analysis is to mimic call/return flow as a unbounded call stack for ordinary calls, and summarizes the call stack for recursive calls because unbounded call stack is uncomputable in static analysis. CFA2 implements the summarization with a tabulate algorithm, and PDCFA annotates state transition edges with stack actions (push, pop, and no action).Both of CFA2 and PDCFA introduce extra semantics for target languages that makes the abstract interpreters hard to implement.
-Fortunately, XXX invented abstracting abstract machine (AAM) as a configurable framework for constructing abstract interpreters in the CESK abstract machine style. AAM not only allocate values in the store (like original \textit{k}-CFA does), but also represents control flow as store-allocated continuations. In AAM, each CESK state does not directly carry continuation, but a continuation address refers to a set of continuations in the store. Merging serval continuations in one continuation address achieves approximation of control flows. Meanwhile, AAM brings two benefits to control flow analysis. On the one hand, it makes soundness of abstract interpreters easily acquired because values and continuations are both in the store and the store size is fixed. On the other hand, store-allocated traditional separates original context-sensitivity (polyvariant values) strategies from call/return match techniques.
-AAC and P4F both based on AAM convert call/return match problem to continuation address allocation strategy. AAC requires expensive overhead, $O(n^9)$, which puts too much information in the continuation addresses. Then P4F tries to reduce the complexity of AAC, but it is not useful for monovariant analysis.
+In this paper, we introduce a new method to address the call/return mismatch problem. 
+In terms of implementation, this method is as simple as P4F and AAC. 
+It provides perfect call/return matching for monovariant and polyvariant control flow analysis. 
+Since this method includes a \emph{program execution history} in the continuation address along with callee's boy, we name it \textit{h}-CFA\@. 
+The program execution history can be regarded as call strings with automatically determined length. 
+For non-recursive calls, execution history always provides enough context information, no matter how deep the call sequence is. 
+The execution history automatically stops growth for recursive calls while the worklist algorithm is responsible 
+for finding the fixed-point of recursive computation. 
+Furthermore, we claim that for call/return matching (polyvariant continuations), finite length of \textit{k} is enough, 
+which reaches N (size of input program) in the worst case.
 
-In this paper, we introduce a new method to address the call/return mismatch problem that is as simple as P4F and AAC to implement, and it can provide perfect call/return match for monovariant and polyvariant control flow analysis. The new method puts a \emph{program execution history} into continuation address with callee's function boy, so we name it \textit{h}-CFA\@. The program execution history can be regarded as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, execution history can automatically stop growth for recursive calls, and the work list algorithm will be responsible for finding the fixed-point of recursive computation. Furthermore, we claim that for call/return match (polyvariant continuations) finite length of \textit{k} is enough, which can reaches n (size of input program) in worst cases.
-
-We implementeded P4F, PDCFA, PDCFA with GC and \textit{h}-CFA for Scheme, and generated state transition graphs (Figure~\ref{fig:state-graphs}) of these four algorithms for a text program in Figure~\ref{fig:fib}.
+We have implementeded P4F, PDCFA, PDCFA with abstract Garbage Collection (GC) and \textit{h}-CFA for Scheme and 
+generated state transition graphs using the four algorithms (Figure~\ref{fig:state-graphs}) for a small program (Figure~\ref{fig:fib}).
 
 \begin{figure}
 \small
@@ -107,9 +175,12 @@ We use the example to compare call/return match strengths of four pushdown contr
 \label{fig:fib}
 \end{figure}
 
-As the \textit{h}-CFA graph shows, there are three similar subgraphs in the state transition process, which obviously illuminate no call/return flow merged in \textit{h}-CFA due to three subgraphs connected by single transition edges.
+As the \textit{h}-CFA graph shows, there are three similar subgraphs in the state transition process, which obviously illustrates
+no call/return flow merged in \textit{h}-CFA due to three subgraphs connected by single transition edges.
 
-\begin{table}[]
+A comparision of the related algorithms with \textit{h}-CFA is shown in Figure~\ref{fig:comparison}
+
+\begin{figure}[t]
 \centering
 \caption{Pushdown Control Flow Analysis Comparison}
 \label{compare}
@@ -119,15 +190,17 @@ Algorithm &
 \begin{tabular}[c]{@{}c@{}}Match \\ Strength\end{tabular} &
 \begin{tabular}[c]{@{}c@{}}Mono \\ -variance\end{tabular}  &
 \begin{tabular}[c]{@{}c@{}}Poly \\ -variance\end{tabular}  &
-  Implementing &
+  Implementation &
 \begin{tabular}[c]{@{}c@{}}Complexity on \\ Monovariance\end{tabular} \\ \hline
 CFA2      & Infinite        & \checkmark   &              & Difficult    & Exponential                \\ \hline
-P4F       & Limited         &              & \checkmark   & Easy         & N/A                        \\ \hline
+P4F       & Limited         &              & \checkmark   & Easy         & $O(n^3)$                   \\ \hline
 PDCFA     & Infinite        & \checkmark   & \checkmark   & Difficult    & $O(n^6)$                   \\ \hline
 AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^9)$                   \\ \hline
 \textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & $O(n^5)$                   \\ \hline
 \end{tabular}
-\end{table}
+\caption{Comparision of CFA2, P4F, PDCFA, AAC, and \textit{h}-CFA in terms of analysis precision, time complexity, and ease of implementation.}
+\label{fig:comparison}
+\end{figure}
 
 
 \subsection{Contributions}
