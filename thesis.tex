@@ -117,8 +117,34 @@ for finding the fixed-point of recursive computation.
 Furthermore, we claim that for call/return matching (polyvariant continuations), finite length of \textit{k} is enough,
 which reaches N (size of input program) in the worst case.
 
+<<<<<<< HEAD
 We have implementeded P4F, PDCFA, PDCFA with abstract Garbage Collection (GC) and \textit{h}-CFA for Scheme and
 generated state transition graphs using the four algorithms (Figure~\ref{fig:state-graphs}) for a small program (Figure~\ref{fig:fib}).
+=======
+To illustrate the difference between P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
+implemented them for Scheme language. We ran the four algorithms on on a small program shown in Figure~\ref{fig:fib} and
+the resulting state-transition graphs are shown in Figure~\ref{fig:state-graphs}.
+
+\begin{figure}
+  \small
+  \lstset{language=Lisp, keywords={define}}
+  \begin{lstlisting}
+  (define (fib n)
+    (if (< n 3)
+        1
+        (+ (fib (- n 1)) (fib (- n 2)))))
+
+  (define a (fib 10))
+  (define b (fib 20))
+  (define c (fib 100))
+  \end{lstlisting}
+\caption{
+This example calls Fibonacci function three times
+and it is used to compare the stength of call/return matching of four pushdown CFA algorithms.
+}
+\label{fig:fib}
+\end{figure}
+>>>>>>> 7c6495f6171b474ab8b7d3b1f25c203799a8b633
 
 \begin{figure}
 \small
@@ -132,7 +158,7 @@ generated state transition graphs using the four algorithms (Figure~\ref{fig:sta
 \includegraphics[height=2in]{pdcfaWOgc.pdf}
 %}
 \\
-(a) P4F with 1-call-sensitive
+(a) P4F with 1-CFA
 &
 (b) PDCFA
 \\
@@ -150,31 +176,13 @@ generated state transition graphs using the four algorithms (Figure~\ref{fig:sta
 \end{tabular}
 \end{center}
 \caption{
-State transition graphs of: (1) P4F (pushdown control flow analysis for free) with 1-CFA (1-call-site sensitive);
-(2) PDCFA (pushdown control flow analysis); (3) PDCFA with abstract garbage collection; (4) \textit{h}-CFA\@.
+State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA;
+(2) PDCFA (pushdown CFA); (3) PDCFA with abstract GC; (4) \textit{h}-CFA\@.
+(2--4) are run with 0-CFA.
 }
 \label{fig:state-graphs}
 \end{figure}
 
-\begin{figure}
-  \small
-  \lstset{language=Lisp, keywords={define}}
-  \begin{lstlisting}
-  (define (fib n)
-    (if (< n 3)
-        1
-        (+ (fib (- n 1)) (fib (- n 2)))))
-
-  (define a (fib 10))
-  (define b (fib 20))
-  (define c (fib 100))
-  \end{lstlisting}
-\caption{
-The simple example invokes recursive fibonacci function three times on its nontrivial condition.
-We use the example to compare call/return match strengths of four pushdown control flow analysis algorithms.
-}
-\label{fig:fib}
-\end{figure}
 
 As the \textit{h}-CFA graph shows, there are three similar subgraphs in the state transition process, which obviously illustrates
 no call/return flow merged in \textit{h}-CFA due to three subgraphs connected by single transition edges.
@@ -183,7 +191,6 @@ A comparision of the related algorithms with \textit{h}-CFA is shown in Figure~\
 
 \begin{figure}[t]
 \centering
-\caption{Pushdown Control Flow Analysis Comparison}
 \label{compare}
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
@@ -199,15 +206,15 @@ PDCFA     & Infinite        & \checkmark   & \checkmark   & Difficult    & $O(n^
 AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^9)$                   \\ \hline
 \textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & $O(n^5)$                   \\ \hline
 \end{tabular}
-\caption{Comparision of CFA2, P4F, PDCFA, AAC, and \textit{h}-CFA in terms of analysis precision, time complexity, and ease of implementation.}
+\caption{Comparison of pushdown CFA algorithms in terms of analysis precision, time complexity, and ease of implementation.}
 \label{fig:comparison}
 \end{figure}
-
+ 
 
 \subsection{Contributions}
 \label{sub:Contributions}
 
-\section{Pushdown Control Flow Analysis in Abstracting Abstract Machines}
+\section{Pushdown CFA in AAM}
 \label{sec:Pushdown Control Flow Analysis in Abstracting Abstract Machines}
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
@@ -229,7 +236,7 @@ lambda \in Lambda ::= (\lambda\ (x)\ e)
 \]
 \[
 \tag{variables}
-x,y \in Var \ is\ a\ set\ of\ identifiers
+x,y \in Var \mbox{ is a set of identifiers}
 \]
 
 This section reviews AAM\@.
@@ -271,11 +278,11 @@ Definitions:
 \]
 \[
 \tag{value addresses}
-\widetilde{a} \in \widetilde{Addr} \ is\ a\ finite\ set
+\widetilde{a} \in \widetilde{Addr} \mbox{ is a finite set}
 \]
 \[
 \tag{continuation addresses}
-\widetilde{a_k} \in \widetilde{KAddr} \ is\ a\ finite\ set
+\widetilde{a_k} \in \widetilde{KAddr} \mbox{ is a finite set}
 \]
 
 Abstract Semantics:
@@ -293,7 +300,7 @@ calls:
 \overbrace{
 \big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
 }^{\widetilde{\varsigma}}
-\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}\textprime, \widetilde{a_k}\textprime \big), where
+\leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}\textprime, \widetilde{a_k}\textprime \big), \mbox{ where}
 \]
 \[
 \big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
@@ -982,7 +989,7 @@ def transitApplication(state: State): Set[State] = state match {
 \label{fig:app-expr}
 \end{figure}
 
-JsCFA's abstract machine architecture decouples the structure of abstract interpreters from details of JavaScript semantics. For example, in reduction rule of infix expressions, the semantics are mainly fulfilled by function ``infixFunc'' that takes the infix operator, addresses of operands, and the current memory and returns a value as consequent. When we implement binary expressions of JavaScript (firure~\ref{fig:infix}), we can just translate and abstract ECMAScript language specification to Scala code, but do not care about the abstract interpreter. Firure~\ref{fig:infix} shows the semantics of multiplication and addition operator that also implements constant propagation of JsCFA\@. Then the result given by function ``infixFunc'' will be saved into the store. Simultaneously, if there are serval different constant values flow into one slot of store, they would be lifted through the constant propagation lattice.
+JsCFA's abstract machine architecture decouples the structure of abstract interpreters from details of JavaScript semantics. For example, in reduction rule of infix expressions, the semantics are mainly fulfilled by function ``infixFunc'' that takes the infix operator, addresses of operands, and the current memory and returns a value as consequent. When we implement binary expressions of JavaScript (firure~\ref{fig:infix}), we can just translate and abstract ECMAScript language specification to Scala code, but do not care about the abstract interpreter. Firure~\ref{fig:infix} shows the semantics of multiplication and addition operator that also implements constant propagation of JsCFA\@. Then the result given by function ``infixFunc'' will be saved into the store. Simultaneously, if there are serval different constant values with same type flow into one slot of store, they would be lifted through the constant propagation lattice.
 
 \begin{tikzpicture}[node distance=1.5cm]
 \title{Constant Propagation Lattice on Numbers der VariableNumber}
@@ -1017,6 +1024,19 @@ JsCFA's abstract machine architecture decouples the structure of abstract interp
 \draw(etc)--(top);
 \draw(2)--(bot);
 \draw(3)--(bot);
+\draw(etc)--(bot);
+\end{tikzpicture}
+
+\begin{tikzpicture}[node distance=1.5cm]
+\title{Constant Propagation Lattice on Boolean}
+\node(top) {Variable Boolean ($\top$)};
+\node(3) [below of=top] { };
+\node(2) [left of=3] {true};
+\node(etc) [right of=3] {false};
+\node(bot) [below of=3] {$\bot$};
+\draw(2)--(top);
+\draw(etc)--(top);
+\draw(2)--(bot);
 \draw(etc)--(bot);
 \end{tikzpicture}
 
