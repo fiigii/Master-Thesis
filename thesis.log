@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  11 JUN 2016 17:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.5.24)  11 JUN 2016 18:37
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -707,98 +707,97 @@ File: lstlang1.sty 2014/09/06 1.5e listings language file
 File: lstlang2.sty 2014/09/06 1.5e listings language file
 ) (/usr/local/texlive/2015/texmf-dist/tex/latex/listings/lstlang3.sty
 File: lstlang3.sty 2014/09/06 1.5e listings language file
-)
-Overfull \hbox (5.40356pt too wide) in paragraph at lines 644--645
+) [12] [13]
+Overfull \hbox (5.40356pt too wide) in paragraph at lines 647--648
 [][][][][][][][][][][][][][][][][][][] 
  []
 
-[12] [13]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <8> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 672.
-
-Overfull \hbox (0.60352pt too wide) in paragraph at lines 819--820
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 675.
+[14] [15]
+Overfull \hbox (0.60352pt too wide) in paragraph at lines 822--823
 [][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (15.00366pt too wide) in paragraph at lines 820--821
+Overfull \hbox (15.00366pt too wide) in paragraph at lines 823--824
 [][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (15.00366pt too wide) in paragraph at lines 822--823
+Overfull \hbox (15.00366pt too wide) in paragraph at lines 825--826
 [][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (67.8042pt too wide) in paragraph at lines 852--853
+Overfull \hbox (67.8042pt too wide) in paragraph at lines 855--856
 [][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (0.60352pt too wide) in paragraph at lines 853--855
+Overfull \hbox (0.60352pt too wide) in paragraph at lines 856--858
 [][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (15.00366pt too wide) in paragraph at lines 859--860
+Overfull \hbox (15.00366pt too wide) in paragraph at lines 862--863
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (24.60376pt too wide) in paragraph at lines 878--879
+Overfull \hbox (24.60376pt too wide) in paragraph at lines 881--882
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (135.00488pt too wide) in paragraph at lines 883--884
+Overfull \hbox (135.00488pt too wide) in paragraph at lines 886--887
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (72.60425pt too wide) in paragraph at lines 887--888
+Overfull \hbox (72.60425pt too wide) in paragraph at lines 890--891
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (10.20361pt too wide) in paragraph at lines 889--890
+Overfull \hbox (10.20361pt too wide) in paragraph at lines 892--893
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (10.20361pt too wide) in paragraph at lines 894--895
+Overfull \hbox (10.20361pt too wide) in paragraph at lines 897--898
 [][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (10.20361pt too wide) in paragraph at lines 895--896
+Overfull \hbox (10.20361pt too wide) in paragraph at lines 898--899
 [][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (120.60474pt too wide) in paragraph at lines 897--898
+Overfull \hbox (120.60474pt too wide) in paragraph at lines 900--901
 [][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (10.20361pt too wide) in paragraph at lines 898--899
+Overfull \hbox (10.20361pt too wide) in paragraph at lines 901--902
 [][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (19.80371pt too wide) in paragraph at lines 901--902
+Overfull \hbox (19.80371pt too wide) in paragraph at lines 904--905
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (24.60376pt too wide) in paragraph at lines 908--909
+Overfull \hbox (24.60376pt too wide) in paragraph at lines 911--912
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-LaTeX Warning: Float too large for page by 167.0944pt on input line 924.
+LaTeX Warning: Float too large for page by 167.0944pt on input line 927.
 
-[14] [15] [16] [17] [18] [19] [20] (./thesis.aux)
+[16] [17] [18] [19] [20] [21] (./thesis.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -806,17 +805,17 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  29441 strings out of 493089
  700902 string characters out of 6134842
- 1137617 words of memory out of 5000000
+ 1133617 words of memory out of 5000000
  32477 multiletter control sequences out of 15000+600000
  15745 words of font info for 60 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  62i,21n,100p,10378b,2289s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb
 ></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb>
-Output written on thesis.pdf (20 pages, 356942 bytes).
+Output written on thesis.pdf (21 pages, 358058 bytes).
 PDF statistics:
- 197 PDF objects out of 1000 (max. 8388607)
- 140 compressed objects within 2 object streams
+ 200 PDF objects out of 1000 (max. 8388607)
+ 142 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  33 words of extra memory for PDF output out of 10000 (max. 10000000)
 
