@@ -643,7 +643,10 @@ Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScr
 \label{sub:Syntax}
 
 The abstract semantics of JsCFA is derived from JAM a unbounded stack semantics for JavaScript analysis. JAM describes a pushdown reduction semantics in $\lambda_{JS}$-calculus, and we modify it to work with direct high level AST of JavaScript in CESK abstract machine. The abstract syntax tree interface is given in figure~\ref{fig:js-stmt} and figure~\ref{fig:js-expr}.
-All the data structures are separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression| respectively. Trait \verb|AbstractSyntaxTree| defines field \verb|id| to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method \verb|generateFrome| that spreads the statically syntactic information from AST nodes to local continuations and values. The top level of a paogram is a sequence of statements warped in \verb|Script|.
+Most of the data structures are separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression| respectively.
+JsCFA distinguishes \emph{left values} and \emph{right values} at syntactical level that simplifies semantics' implementation, so expressions that eventually work out left values are subclasses of \verb|LValue|.
+Trait \verb|AbstractSyntaxTree| defines field \verb|id| to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method \verb|generateFrome| that spreads the statically syntactic information from AST nodes to local continuations and values.
+The top level of a paogram is a sequence of statements warped in \verb|Script|.
 
 \begin{figure}
 %\small
@@ -1174,15 +1177,15 @@ The only difference between function calls and method calls is that method invoc
 New call (functions called as constructors) is another function invocation in JavaScript, which generates a new and empty object at the ``new call site'', passes the object as \verb|this| argument, and return the generated object as computing result of the new call. In JsCFA, we implement the ``return the generated object'' with a trick, that puts a extra local continuation object \verb|KUseValue(obj)| into the new \verb|localStack|.
 \verb|KUseValue(obj)| represents a low-level instruction that indicates abstract interpreter should throw away functions' original return values and use the specific object \verb|obj| to replace.
 
-\subsection{Configureable Context-Sensitivity and Partial Object Sensitive}
+\subsection{Configureable Context-Sensitivity and Partial Object Sensitivity}
 \label{sub:Configureable}
 Context sensitivity is an effective approach to impact precision and performance of static analysis. Different context choices yield different analysis results and performance. On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) contributes precision influence on specific analysis problems. On the other hand, certain contexts can select different precision level with different performance cost, such as call-site sensitivity in \textit{k}-CFA\@.
-One of the most crucial contributions of AAM is that makes context sensitivity configureable. Values' contexts are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Address}$. %cite
-Even we can mix serval context sensitivity strategies in one analyzer. For example, JsCFA usually allocates context insensitive address for most values.
+One of the most crucial contributions of AAM is that makes context sensitivity configureable. Values' contexts are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Addr}$. %cite
+Even we can mix serval context sensitivity strategies in one analyzer. For example, JsCFA usually allocates context insensitive addresses for most values.
 \[
 \widetilde{alloc_{JsCFA}}(expression) = JSReference(expression.id)
 \]
-Every expression store its computing result (values) in the slot indicated by its static syntactical label (\verb|expression.id|). However, the context insensitive address will dramatically lose precision over dynamic features of JavaScript. Consider the following common example in JavaScript.
+Every expression store its computing result (values) in the slot indicated by its static syntactical label (\verb|expression.id|). However, the context insensitive addresses will dramatically lose precision over dynamic features of JavaScript. Consider the following common example in JavaScript.
 \lstset{mathescape}
 \begin{lstlisting}
   obj["p"] = e$^l$ //"p" is not in obj
@@ -1202,12 +1205,12 @@ Meanwhile, this spurious analysis result will flow into following interpretation
 Traditional \textit{k}-CFA attempts to resolve this problem via introducing context-sensitive (polyvariant) analysis. However, polyvariance is not a efficient and powerful solution to this problem.
 
 The essential reason why different actual parameters merge into same formal parameters is monovariant abstract interpreters breaking the concrete semantics. Concrete interpreters never merge parameters from different call sites because local variables will be deleted when the interpreter exits from the function.
-Consequently, CFA2 invents an approach named ``stack filtering'' making it more useful, which just returns \verb|#t| to variable \verb|b|. Stack filtering simulates the semantics of popping call stack frames to remove useless values of local variables. However, there are two limitations that lead stack filtering not being able to port to AAM\@. On the one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. On the other hand, we cannot always pop call stack frames after function returns because section~\ref{sub:Polyvariant Continuation} mentions that continuation stores may becomes graphs rather than stacks.
+Consequently, CFA2 invents an approach named ``stack filtering'' making it more useful, which just returns \verb|#t| to variable \verb|b|. Stack filtering simulates the semantics of popping call stack frames to remove useless values of local variables. However, there are two limitations that lead stack filtering not being able to port to AAM\@. On the one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. On the other hand, we cannot always pop call stack frames after function returns because section~\ref{sub:Polyvariant Continuation} mentions that continuation stores may become graphs that contain cycles rather than stacks.
 
 Introspective pushdown control flow analysis described by XXX integrates abstract garbage collection ($\Gamma$-CFA) in PDCFA to implement the stack filtering. JsCFA also adopts this strategy to improve analysis precision and make call/return match more useful. The semantics of abstract garbage collection is same with its counterparts in concrete interpreters/runtimes.
 We first scan current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' caught variables. Every address reached in last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by addresses that do not appear in mark set are regarded as garbage.
 
-However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically take experiential complexity, in practice its performance much better than global store without abstract GC\@.
+However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically takes experiential complexity, in practice its performance much better than global store without abstract GC\@.
 Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only application states may change the store, so evaluation and continuation states interpreted between two application states share one store. Secondly, abstract GC running never directly deletes values even they are detected as garbage. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values) to eliminate the overhead of imperative deleting elements in stores.
 Class \verb|Memory| provides method \verb|copy| that launches GC and return a new memory instance only containing reachable elements.
 \[
@@ -1215,5 +1218,20 @@ copy: Memory \times State \to Memory
 \]
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:stack-gc}
-In this section, we show how to give up execution history and apply our theory for direct-style AST\@.
+\textit{h}-CFA is an effective method to acquire call/return perfect match in monovariant analysis on ANF style programs. However, ANF transformation limits precision improvement of highly dynamic language analysis, especially JavaScript.
+Although theoretical static analysis techniques already obtains acceptable consequence for high-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language does not provides native ``inherit'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
+\lstset{mathescape,
+keywords={function, for, in, if, return, var}}
+\begin{lstlisting}
+  function extends(target, source) {
+    for(var propName in source) {
+      if(source.hasOwnProperty(propName)) {
+        target[propName] = source[propName];
+      }
+    }
+    return target;
+  }
+
+\end{lstlisting}
+It would introduce extra effort to record the program execution history if we implement \textit{h}-CFA on direct AST for JsCFA\@.
 \end{document}
