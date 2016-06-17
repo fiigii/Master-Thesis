@@ -639,13 +639,11 @@ In traditional software engineering area, static analysis have become an effecti
 One of the most critical reason that cause the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of functions. In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site. Simultaneously, JavaScript heavy relies on first-class functions to implement certain extra high-level semantics, such as methods, block scoping, and module import/export, etc.
 Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScript (ECMAScript 3) that based on \textit{h}-CFA computes more precise control flow analysis, points-to analysis, and constant propagation. Although JsCFA works out almost monovariant, context-insensitive analysis results, based on AAM, context-sensitivity is easily obtained and configurable.
 
-\subsection{Semantics of JsCFA}
-\label{sub:Semantics of JsCFA}
 \subsection{Syntax Interface}
 \label{sub:Syntax}
 
 The abstract semantics of JsCFA is derived from JAM a unbounded stack semantics for JavaScript analysis. JAM describes a pushdown reduction semantics in $\lambda_{JS}$-calculus, and we modify it to work with direct high level AST of JavaScript in CESK abstract machine. The abstract syntax tree interface is given in figure~\ref{fig:js-stmt} and figure~\ref{fig:js-expr}.
-All the data structures are separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression\verb| respectively. Trait \verb|AbstractSyntaxTree| defines field \verb|id| to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method \verb|generateFrome| that spreads the statically syntactic information from AST nodes to local continuations and values. The top level of a paogram is a sequence of statements warped in \verb|Script|.
+All the data structures are separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression| respectively. Trait \verb|AbstractSyntaxTree| defines field \verb|id| to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method \verb|generateFrome| that spreads the statically syntactic information from AST nodes to local continuations and values. The top level of a paogram is a sequence of statements warped in \verb|Script|.
 
 \begin{figure}
 %\small
@@ -709,6 +707,12 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}
   case class InfixExpr(op: InfixOp, expr1: Expression, expr2: Expression) extends Expression
   case class CondExpr(cond: Expression, thenPart: Expression, elsePart: Expression) extends Expression
   case class ListExpr(exprs: List[Expression]) extends Expression
+
+  sealed abstract class LValue extends AbstractSyntaxTree
+
+  case class LVarRef(name: String) extends LValue with VariableAccess
+  case class LDot(obj: Expression, field: String) extends LValue
+  case class LBracket(obj: Expression, prop: Expression) extends LValue
 \end{lstlisting}
 \caption{Abstract syntax tree data types of expressions}
 \label{fig:js-expr}
@@ -1113,16 +1117,16 @@ def infixFunc(op: InfixOp, e1: JSValue, e2: JSValue, memory: Memory): JSValue =
 
 Class \verb|Memory| packs value store and continuation store in one object and provides four main methods for interacting with abstract machines.
 \[
-putValue : Memory \times JSReference \times JSValue \to Unit
+putValue: Memory \times JSReference \times JSValue \to Unit
 \]
 \[
-getValue : Memory \times JSReference \to \mathcal{P}(JSValue)
+getValue: Memory \times JSReference \to \mathcal{P}(JSValue)
 \]
 \[
-pushGlobalStack : Memory \times StackAddress \times GlobalFrame \to Unit
+pushGlobalStack: Memory \times StackAddress \times GlobalFrame \to Unit
 \]
 \[
-getGlobalFrames : Memory \times StackAddress \to \mathcal{P}(GlobalFrame)
+getGlobalFrames: Memory \times StackAddress \to \mathcal{P}(GlobalFrame)
 \]
 
 Method ``putValue'' and ``pushGlobalStack'' imperatively updates value store and continuation store respectively. Meanwhile, \verb|getValue| and ``getGlobalFrames'' retrieves values and stack frames nondeterministically.
@@ -1166,9 +1170,30 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
 \label{fig:app-call}
 \end{figure}
 
-The only difference between function calls and method calls is that method invocations explicitly bring \verb|this| arguments, so we need to set \verb|this| as ``receivers'' in method environments.
+The only difference between function calls and method calls is that method invocations extract function objects from receivers and explicitly bring \verb|this| arguments, so we need to set \verb|this| to ``receivers'' in method environments.
 New call (functions called as constructors) is another function invocation in JavaScript, which generates a new and empty object at the ``new call site'', passes the object as \verb|this| argument, and return the generated object as computing result of the new call. In JsCFA, we implement the ``return the generated object'' with a trick, that puts a extra local continuation object \verb|KUseValue(obj)| into the new \verb|localStack|.
 \verb|KUseValue(obj)| represents a low-level instruction that indicates abstract interpreter should throw away functions' original return values and use the specific object \verb|obj| to replace.
+
+\subsection{Configureable Context-Sensitivity and Partial Object Sensitive}
+\label{sub:Configureable}
+Context sensitivity is an effective approach to impact precision and performance of static analysis. Different context choices yield different analysis results and performance. On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) contributes precision influence on specific analysis problems. On the other hand, certain contexts can select different precision level with different performance cost, such as call-site sensitivity in \textit{k}-CFA\@.
+One of the most crucial contributions of AAM is that makes context sensitivity configureable. Values' contexts are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Address}$. %cite
+Even we can mix serval context sensitivity strategies in one analyzer. For example, JsCFA usually allocates context insensitive address for most values.
+\[
+\widetilde{alloc_{JsCFA}}(expression) = JSReference(expression.id)
+\]
+Every expression store its computing result (values) in the slot indicated by its static syntactical label (\verb|expression.id|). However, the context insensitive address will dramatically lose precision over dynamic features of JavaScript. Consider the following common example in JavaScript.
+\lstset{mathescape}
+\begin{lstlisting}
+  obj["p"] = e$^l$ //"p" is not in obj
+\end{lstlisting}
+In totally monovariant analysis, if there are serval objects flow into \verb|obj|, after the expression executing all of the objects would have a field \verb|"p"| that refers to values allocated in \verb|JSReference(l)|. However, when other expressions reassign the value of field \verb|"p"| for one of these objects, this modification propagates to each object that flowed into \verb|obj|.
+
+Thus, we apply object sensitive allocation for the dynamic object extension.
+\[
+\widetilde{alloc^{o}_{JsCFA}}(expression, object) = JSReference(expression.id, object.id)
+\]
+This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc^{o}_{JsCFA}}$ for adding fields, and other situations maintain context insensitive. Ultimately, JsCFA achieves more precise analysis over dynamic objects, but on heavy overhead imported.
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
 \label{sub:Abstract Garbage Collection as Stack Filtering}
@@ -1186,7 +1211,7 @@ However, the effect of abstract garbage collection is relatively weaken in globa
 Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only application states may change the store, so evaluation and continuation states interpreted between two application states share one store. Secondly, abstract GC running never directly deletes values even they are detected as garbage. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values) to eliminate the overhead of imperative deleting elements in stores.
 Class \verb|Memory| provides method \verb|copy| that launches GC and return a new memory instance only containing reachable elements.
 \[
-copy : Memory \times State \to Memory
+copy: Memory \times State \to Memory
 \]
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:stack-gc}
