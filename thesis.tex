@@ -1218,12 +1218,12 @@ copy: Memory \times State \to Memory
 \]
 \subsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{sub:stack-gc}
-\textit{h}-CFA is an effective method to acquire call/return perfect match in monovariant analysis on ANF style programs. However, ANF transformation limits precision improvement of highly dynamic language analysis, especially JavaScript.
-Although theoretical static analysis techniques already obtains acceptable consequence for high-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language does not provides native ``inherit'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
+\textit{h}-CFA is an effective and easily implemented method to acquire call/return perfect match in monovariant analysis on ANF style programs. However, ANF transformation limits precision improvement of highly dynamic language analysis, especially JavaScript.
+Although theoretical static analysis techniques already obtains acceptable consequence for high-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language that has no native ``inheritance'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
 \lstset{mathescape,
 keywords={function, for, in, if, return, var}}
 \begin{lstlisting}
-  function extends(target, source) {
+  function extend(target, source) {
     for(var propName in source) {
       if(source.hasOwnProperty(propName)) {
         target[propName] = source[propName];
@@ -1231,7 +1231,16 @@ keywords={function, for, in, if, return, var}}
     }
     return target;
   }
-
 \end{lstlisting}
-It would introduce extra effort to record the program execution history if we implement \textit{h}-CFA on direct AST for JsCFA\@.
+The function \verb|extend| accepts two objects as parameters, \verb|target| and \verb|source|.
+Then all of the first-level properties of object \verb|source| are copied into \verb|target|. If we apply traditional static analysis (points-to analysis) techniques to programs that densely use this function, the precision would be dramatically decreased.
+Consider monovariant analysis on function \verb|extend|, all property names (strings) of \verb|source| flows into \verb|propName| and merges to a ``veriable string'' (top value of string in JsCFA), and object \verb|target| also becomes a top value of object that does not contribute any benefit to following analysis process.
+Traditional monovariant analysis does not detect and fulfill the high-level semantics that copy first-level properties form one objects to others.
+Fortunately, there are already techniques that attempts to boost static analysis results for dynamic languages via recognizing high-level semantics.
+Correlation tracking %TODO: cite
+is one of these techniques that matches \emph{correlated dynamic property access} patterns that are often used to implement \verb|extend|. Then analysis precision achieves enhancement from the high-level perspective that directly ``inherit'' properties from \verb|source|.
+Therefore, we have to retain code patterns or conventions of input programs in the intermediate representations (IR) of abstract interpreters.
+This is the most significant reason why we adopt direct AST as the IR of JsCFA rather than other low-level forms, such as ANF\@.
+
+However, it would introduce extra effort to record the program execution history if we port \textit{h}-CFA to cooperate with direct AST in JsCFA\@.
 \end{document}
