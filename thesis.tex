@@ -1329,7 +1329,7 @@ This continuation allocation is similar with 1-CFA that characterizes function e
 
 Then, when we complete computing \verb|(fib res2)|, the abstract interpreter will be confused by merged stack, which return through either $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}}$ or $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{11}}$. In other words, the analysis result of \verb|(fib 20)| also can flows into \verb|a|.
 
-Consequently, the essential reason of CFA without program execution history mismatching call/return flows is new call stacks merging with old call stacks of finished computation. This call stack merging is also due to abstract interpreters violating concrete semantics. As reported by section~\ref{sub:filtering}, call stack frames is ought to be reclaimed after function exiting, but cycles in the linked stack do not allow direct popping stack frames like concrete interpreters do.
+Consequently, the essential reason of CFA without program execution history mismatching call/return flows is new call stacks merging with old call stacks of finished computation. This call stack merging is also due to abstract interpreters violating concrete semantics. As reported by section~\ref{sub:filtering}, call stack frames ought to be reclaimed after function exiting, but cycles in the linked stack do not allow direct popping stack frames like concrete interpreters do.
 
 \subsubsection{Abstract Garbage Collection as Popping Call Stack Frames}
 \label{subs:stack-gc}
