@@ -478,12 +478,13 @@ $\widetilde{KAddr^H}$ in $CESK^H$ machines is encoded by: (1) the call stie $e$,
 
 \subsection{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-Let's exam the analysis process of a simple example to understand \textit{h}-CFA, the example is similar with Figure~\ref{fig:fib} but written in ANF style showed by Figure~\ref{fig:anf-fib}.
+Let's exam the analysis process of a simple example to understand \textit{h}-CFA, the example is similar with Figure~\ref{fig:fib} but written in ANF style showed by figure~\ref{fig:anf-fib}.
 
 \begin{figure}
 \small
 \lstset{language=Lisp,
-keywords={letrec,lambda,let}}
+keywords={letrec,lambda,let},
+mathescape}
 \begin{lstlisting}
   (letrec ((fib (lambda (n)
                   (let ((res1 (< n 3)))
@@ -542,7 +543,7 @@ However, (res3 (fib res2)) is a recursive call site, so the execution history at
 \begin{aligned}
 \label{eq:show-stack}
 \widetilde{a^H_k{}_2} \mapsto \{ {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \tilde{h_2}, \widetilde{a^H_k{}_1}), {} \\
-                                 {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_a}, \tilde{h_a}, \widetilde{a^H_k{}_2}) \}
+                                 {}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_3}, \{fib, res1, res2\}, \widetilde{a^H_k{}_2}) \}
 \end{aligned}
 \]
 
@@ -1199,7 +1200,7 @@ Thus, we apply object sensitive allocation for the dynamic object extension.
 This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc^{o}_{JsCFA}}$ for adding fields, and other situations maintain context insensitive. Ultimately, JsCFA achieves more precise analysis over dynamic objects, but on heavy overhead imported.
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
-\label{sub:Abstract Garbage Collection as Stack Filtering}
+\label{sub:filtering}
 In practice, call/return perfect match only working with monovariant analysis is useless. Please consider the first simple example in section~\ref{Introduction} again, if our abstract interpreter can match call/return flows perfect, variable \verb|a| would get value \verb|1| after executing call site 1. Then, when call site 2 invokes function \verb|id| again, the new argument \verb|\#t| merges with \verb|1| passed into \verb|x| by call site 1. Then, the merged abstract value \verb|{1, #t}| returns to variable \verb|b|.
 Meanwhile, this spurious analysis result will flow into following interpretation, and accumulated spurious values and flows will dramatically decrease precision of analysis.
 Traditional \textit{k}-CFA attempts to resolve this problem via introducing context-sensitive (polyvariant) analysis. However, polyvariance is not a efficient and powerful solution to this problem.
@@ -1216,8 +1217,11 @@ Class \verb|Memory| provides method \verb|copy| that launches GC and return a ne
 \[
 copy: Memory \times State \to Memory
 \]
-\subsection{Abstract Garbage Collection as Popping Call Stack Frames}
-\label{sub:stack-gc}
+\subsection{Call/Return Match in JsCFA}
+\label{sub:pushdown-jscfa}
+\subsubsection{Intermediate Representation of JsCFA}
+\label{subs:Intermediate Representation of JsCFA}
+
 \textit{h}-CFA is an effective and easily implemented method to acquire call/return perfect match in monovariant analysis on ANF style programs. However, ANF transformation limits precision improvement of highly dynamic language analysis, especially JavaScript.
 Although theoretical static analysis techniques already obtains acceptable consequence for high-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language that has no native ``inheritance'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
 \lstset{mathescape,
@@ -1242,5 +1246,93 @@ is one of these techniques that matches \emph{correlated dynamic property access
 Therefore, we have to retain code patterns or conventions of input programs in the intermediate representations (IR) of abstract interpreters.
 This is the most significant reason why we adopt direct AST as the IR of JsCFA rather than other low-level forms, such as ANF\@.
 
-However, it would introduce extra effort to record the program execution history if we port \textit{h}-CFA to cooperate with direct AST in JsCFA\@.
+However, it would introduce extra effort to record the program execution history if we port \textit{h}-CFA to cooperate with direct AST in JsCFA\@. Consequently, JsCFA adopts \textit{h}-CFA by an indirect approach that can perfect match call/return flows without program execution histories.
+
+\subsubsection{The Essence of \textit{h}-CFA}
+\label{subs:ehcfa}
+Before adjust \textit{h}-CFA for JsCFA, we should discuss the most significant reason why abstract interpreters require program execution history for pushdown CFA\@. Consider the example in figure~\ref{fig:anf-fib} again, after analyzing \verb|(a (fib 10))|, function \verb|fib| is invoked again and we have to recompute the recursive call site \verb|(fib res2)| in a new analysis environment. At this point, the continuation store $\widetilde{\sigma_k^H}$ looks like blow.
+
+\[
+\widetilde{a^H_k{}_{11}} = ((fib\ 10), \widehat{fib}, \{fib\})
+\]
+\[
+\widetilde{a^H_k{}_{12}} = ((fib\ res2), \widehat{fib}, \{fib, res1, res2\})
+\]
+\[
+\widetilde{a^H_k{}_{21}} = ((fib\ 20), \widehat{fib}, \{fib, a\})
+\]
+\[
+\widetilde{a^H_k{}_{22}} = ((fib\ res2), \widehat{fib}, \{fib, a, res1, res2\})
+\]
+\[
+\begin{aligned}
+\widetilde{\sigma_k^H} = \{ {}& \widetilde{a^H_k{}_{11}} \mapsto \{(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \{fib\}, \widetilde{a^H_k{}_{init}})\}  {} \\
+                            &
+                            \begin{aligned}
+                              \widetilde{a^H_k{}_{12}} \mapsto
+                              \{{}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \{fib, res1, res2\}, \widetilde{a^H_k{}_{11}}) {}\\
+                              & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_3}, \{fib, res1, res2\}, \widetilde{a^H_k{}_{12}}) {} \\
+                              & \dots
+                              \}
+                            \end{aligned} {} \\
+                            & \widetilde{a^H_k{}_{21}} \mapsto \{(b, (\dots), \{fib, a\}, \widetilde{a^H_k{}_{init}}) \} {}\\
+                            &
+                            \begin{aligned}
+                              \widetilde{a^H_k{}_{22}} \mapsto
+                              \{{}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \{fib, a, res1, res2\}, \widetilde{a^H_k{}_{21}}) {}\\
+                              & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_3}, \{fib, a, res1, res2\}, \widetilde{a^H_k{}_{22}}) {} \\
+                              & \dots
+                              \}
+                            \end{aligned} {}\\
+                            & \dots {}\\
+                            & \}
+\end{aligned}
+\]
+
+According to the illustration, when the $CESK^H$ machine finishes analyzing function calls from \verb|(fib res2)| at certain recursive levels, control flow will back to return point \verb|b| along the stack $\dots \to \widetilde{a^H_k{}_{22}} \to \widetilde{a^H_k{}_{21}} \to \widetilde{a^H_k{}_{init}}$. There is no any mismatch between returns and corresponding calls.
+
+Then, we want to show what would happen if JsCFA directly abandons program execution histories in $\widetilde{KAddr}$. The new continuation addresses are just encoded by current call site and callee function.
+
+\[
+\widetilde{kalloc_{non-h}} ((e, \tilde{\rho}, \tilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}), e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime) =
+(e, e\textprime)
+\]
+
+This continuation allocation is similar with 1-CFA that characterizes function entries by the last call site. Unfortunately, in the 1-CFA-like analysis, we cannot distinguish $\widetilde{a^H_k{}_{22}}$ and $\widetilde{a^H_k{}_{12}}$ the stack frame pointers of states that go into \verb|(fib res2)|. Therefore, frames referred by $\widetilde{a^H_k{}_{22}}$ and $\widetilde{a^H_k{}_{12}}$ also merge into one slot of the continuation store.
+
+\[
+\widetilde{a_k{}_{11}} = ((fib\ 10), \widehat{fib})
+\]
+\[
+\widetilde{a_k{}_{21}} = ((fib\ 20), \widehat{fib})
+\]
+\[
+\widetilde{a_k{}_{2}} = ((fib\ res2), \widehat{fib})
+\]
+\[
+\begin{aligned}
+\widetilde{\sigma_k} = \{ {}& \widetilde{a_k{}_{11}} \mapsto \{(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \widetilde{a_k{}_{init}})\}  {} \\
+                            & \widetilde{a_k{}_{21}} \mapsto \{(b, (\dots), \widetilde{a_k{}_{init}}) \} {}\\
+                            &
+                            \begin{aligned}
+                              \widetilde{a_k{}_{2}} \mapsto
+                              \{{}& (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_{21}}, \widetilde{a_k{}_{21}}) {}\\
+                              & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_{11}}, \widetilde{a_k{}_{11}}) {}\\
+                              & (res3, (let\ (res4\ (-\ n\ 2)) \dots), \widetilde{env_2}, \widetilde{a_k{}_{2}}) {} \\
+                              & \dots
+                              \}
+                            \end{aligned} {}\\
+                            & \dots {}\\
+                            & \}
+\end{aligned}
+\]
+
+Then, when we complete computing \verb|(fib res2)|, the abstract interpreter will be confused by merged stack, which return through either $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}}$ or $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{11}}$. In other words, the analysis result of \verb|(fib 20)| also can flows into \verb|a|.
+
+Consequently, the essential reason of CFA without program execution history mismatching call/return flows is new call stacks merging with old call stacks of finished computation. This call stack merging is also due to abstract interpreters violating concrete semantics. As reported by section~\ref{sub:filtering}, call stack frames is ought to be reclaimed after function exiting, but cycles in the linked stack do not allow direct popping stack frames like concrete interpreters do.
+
+\subsubsection{Abstract Garbage Collection as Popping Call Stack Frames}
+\label{subs:stack-gc}
+
+
 \end{document}
