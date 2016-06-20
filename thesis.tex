@@ -812,9 +812,13 @@ Finally, there is a special circumstance in dispatching to continuation transiti
     case completeState if isComplete(completeState) =>
         transitApplication(state)
     case State(v, env, localStack, a, memory) if isJSValue(v) =>
-        val cont = topOfLocalStack(localStack)
-        val newStack = popLocalStack(localStack)
-        transitContinuation(cont, v, env, newStack, a, memory)
+        if (localStack.nonEmpty) {
+          val cont = topOfLocalStack(localStack)
+          val newStack = popLocalStack(localStack)
+          transitContinuation(cont, v, env, newStack, a, memory)
+        } else {
+          $\dots$ \\return
+        }
 
     //statements
     case State(Script(Nil), env, localStack, a, memory) =>
@@ -966,7 +970,9 @@ def transitApplication(state: State): Set[State] = state match {
             <- newMemory.getGlobalFrames(a)
       } yield {
         if(oldStack.isEmpty || !oldStack.head.isInstanceOf[KUseValue]) {
-          newMemory.getValue(v).foreach(newMemory.putValue(returnPoint, _))
+          for(vs <- newMemory.getValue(v)) {
+            newMemory.putValue(returnPoint, vs)
+          }
         }
         State(returnPoint, savedEnv, oldStack, newGlobalAddress, newMemory)
       }
@@ -998,7 +1004,9 @@ def transitApplication(state: State): Set[State] = state match {
   case State(VarRef(x), env, localStack, a, memory) =>
       val newMemory = memory.copy(state)
       val xRef = lookup(env, x)
-      newMemory.getValue(xRef).foreach(newMemory.putValue(JSReference(state.e.id), _))
+      for(vs <- newMemory.getValue(xRef)){
+        newMemory.putValue(JSReference(state.e.id), vs)
+      }
       Set(State(JSReference(state.e.id), env, localStack, a, newMemory))
 
   case State(LVarRef(x), env, localStack, a, memory) =>
@@ -1212,8 +1220,12 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
         }
         val newEnv = savedEnv ++ Map(newEnvPart: _*)
 
-        psAddress.zip(args).foreach[Unit]((p: (JSReference, JSValue)) =>
-          newMemory.getValue(p._2).foreach(newMemory.putValue(p._1, _)))
+        for(p <- psAddress.zip(args)) {
+          for(vs <- newMemory.getValue(p._2)) {
+            newMemory.putValue(p._1, vs)
+          }
+        }
+        
         val nextAddress = allocStackAddress(state, funcBody, newEnv)
         newMemory.pushGlobalStack(nextAddress,
                                   GlobalFrame(alloc(state.e), localStack, env, a))
