@@ -1372,5 +1372,7 @@ Then the abstract interpreter dives into this call site, when the invocation com
 \end{aligned}
 \]
 
-Therefore, control flows are only able to return to \verb|b| through the stack $\dots \to \widetilde{a^H_k{}_{2}} \to \widetilde{a^H_k{}_{21}} \to \widetilde{a^H_k{}_{init}}$.
+Therefore, control flows are only able to return to \verb|b| through the stack $\dots \to \widetilde{a^H_k{}_{2}} \to \widetilde{a^H_k{}_{21}} \to \widetilde{a^H_k{}_{init}}$. Eventually, JsCFA either never mismatches return flows with their own corresponding call sites or directly analyze input programs without ANF transformation. 
+
+
 \end{document}
