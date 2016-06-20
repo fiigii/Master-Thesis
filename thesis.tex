@@ -213,17 +213,19 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \label{sec:Pushdown Control Flow Analysis in Abstracting Abstract Machines}
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
-Before section 4, we will describe algorithms on ANF style lambda calculus.
+We describe pushdown CFA algorithms on ANF style lambda calculus.
 \[
+\tag{expressions}
 \begin{aligned}
 \label{eq:bnf}
-e \in Exp ::= {}& (let\ ((x\ (f\ ae)))\ e) {} \\
-&|\ ae
+e \in Exp ::= {}& (let\ ((x\ (f\ \ae)))\ e) {} \\
+&|(let\ ((y\ \ae))\ e) {}\\
+&|\ \ae
 \end{aligned}
 \]
 \[
 \tag{atomic expressions}
-f, ae \in AExp ::= x\ |\ lambda
+f, \ae \in AExp ::= x\ |\ lambda
 \]
 \[
 \tag{lambda abstractions}
@@ -293,18 +295,18 @@ alloc:
 calls:
 \[
 \overbrace{
-\big((let\ ([y\ (f\ ae)]\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
+\big((let\ ((y\ (f\ \ae))\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
 }^{\widetilde{\varsigma}}
 \leadsto \big(e\textprime,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}\textprime, \widetilde{a_k}\textprime \big), \mbox{ where}
 \]
 \[
-\big((lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
+\big((\lambda\ (x)\ e\textprime), \widetilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \widetilde{\rho}, \widetilde{\sigma})
 \]
 \[
 \widetilde{\rho}\textprime = \widetilde{\rho}_{\lambda}[x \mapsto \widetilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(\ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
@@ -316,11 +318,28 @@ calls:
 \widetilde{a_k}\textprime = \widetilde{kalloc}(\widetilde{\varsigma}, e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime)
 \]
 
+declarations:
+\[
+\overbrace{
+\big((let\ ((y\ \ae)\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
+}^{\widetilde{\varsigma}}
+\leadsto \big(e,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}, \widetilde{a_k} \big), \mbox{ where}
+\]
+\[
+\widetilde{\rho}\textprime = \widetilde{\rho}[y \mapsto \widetilde{a}]
+\]
+\[
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(\ae, \widetilde{\rho}, \widetilde{\sigma})]
+\]
+\[
+\widetilde{a} = \widetilde{alloc}(y, \widetilde{\varsigma})
+\]
+
 
 returns:
 \[
 \overbrace{
-(ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k})
+(\ae, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k})
 }^{\widetilde{\varsigma}}
 \leadsto (e, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma_k}, \widetilde{a_k}\textprime, \widetilde{h}\textprime)
 \]
@@ -331,10 +350,22 @@ returns:
 \widetilde{\rho}\textprime = \widetilde{\rho_k}[x \mapsto \widetilde{a}]
 \]
 \[
-\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(ae, \widetilde{\rho}, \widetilde{\sigma})]
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(\ae, \widetilde{\rho}, \widetilde{\sigma})]
 \]
 \[
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
+\]
+
+eval:
+\[
+\widetilde{eval} : AExp \times \widetilde{Env} \times \widetilde{Store} \to \widetilde{Value}
+\]
+
+\[
+\widetilde{eval}(x, \tilde{\rho}, \tilde{\sigma}) \triangleq \tilde{\sigma}(\tilde{\rho}(x))
+\]
+\[
+\widetilde{eval}(lambda, \tilde{\rho}, \tilde{\sigma}) \triangleq \{(lambda, \tilde{\rho})\}
 \]
 
 \subsection{Defect of AAM}
@@ -419,18 +450,18 @@ Following definitions describe the abstract semantics of $CESK^H$ machine.
 Calls:
 \[
 \overbrace{
-\big((let\ ([y\ (f\ ae)]\ e)), \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \tilde{a_k}, \tilde{h} \big)
+\big((let\ ((y\ (f\ \ae))\ e)), \tilde{\rho}, \tilde{\sigma}, \widetilde{\sigma^H_k}, \widetilde{a^H_k}, \tilde{h} \big)
 }^{\widetilde{\varsigma^H}}
 \leadsto \big(e\textprime,\tilde{\rho}\textprime, \tilde{\sigma}\textprime, \widetilde{\sigma_k^H}\textprime, \widetilde{a_k^H}\textprime, \tilde{h}\textprime \big), where
 \]
 \[
-\big((lambda\ (x)\ e\textprime), \tilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \tilde{\rho}, \tilde{\sigma})
+\big((\lambda\ (x)\ e\textprime), \tilde{\rho}_{\lambda}  \big) \in \widetilde{eval}(f, \tilde{\rho}, \tilde{\sigma})
 \]
 \[
 \tilde{\rho}\textprime = \tilde{\rho}_{\lambda}[x \mapsto \tilde{a}]
 \]
 \[
-\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(\ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
 \tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
@@ -445,10 +476,30 @@ Calls:
 \tilde{h}\textprime = \tilde{h}[x \mapsto \tilde{a}]
 \]
 
+Declarations:
+\[
+\overbrace{
+\big((let\ ((y\ \ae)\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma^H_k}, \widetilde{a^H_k}, \tilde{h} \big)
+}^{\widetilde{\varsigma^H}}
+\leadsto \big(e,\widetilde{\rho}\textprime, \widetilde{\sigma}\textprime, \widetilde{\sigma^H_k}, \widetilde{a^H_k}, \tilde{h}\textprime \big), \mbox{ where}
+\]
+\[
+\widetilde{\rho}\textprime = \widetilde{\rho}[y \mapsto \widetilde{a}]
+\]
+\[
+\widetilde{\sigma}\textprime = \widetilde{\sigma} \sqcup [\widetilde{a} \mapsto \widetilde{eval}(\ae, \widetilde{\rho}, \widetilde{\sigma})]
+\]
+\[
+\widetilde{a} = \widetilde{alloc}(y, \widetilde{\varsigma})
+\]
+\[
+\tilde{h}\textprime = \tilde{h}[y \mapsto \tilde{a}]
+\]
+
 Returns:
 \[
 \overbrace{
-(ae, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \widetilde{a_k^H}, \tilde{h})
+(\ae, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \widetilde{a_k^H}, \tilde{h})
 }^{\widetilde{\varsigma^H}}
 \leadsto (e, \tilde{\rho}\textprime, \tilde{\sigma}\textprime, \widetilde{\sigma_k^H}, \widetilde{a_k^H}\textprime, \tilde{h}\textprime)
 \]
@@ -459,7 +510,7 @@ Returns:
 \tilde{\rho}\textprime = \tilde{\rho_k}[x \mapsto \tilde{a}]
 \]
 \[
-\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(ae, \tilde{\rho}, \tilde{\sigma})]
+\tilde{\sigma}\textprime = \tilde{\sigma} \sqcup [\tilde{a} \mapsto \widetilde{eval}(\ae, \tilde{\rho}, \tilde{\sigma})]
 \]
 \[
 \tilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma^H})
@@ -1372,7 +1423,7 @@ Then the abstract interpreter dives into this call site, when the invocation com
 \end{aligned}
 \]
 
-Therefore, control flows are only able to return to \verb|b| through the stack $\dots \to \widetilde{a^H_k{}_{2}} \to \widetilde{a^H_k{}_{21}} \to \widetilde{a^H_k{}_{init}}$. Eventually, JsCFA either never mismatches return flows with their own corresponding call sites or directly analyze input programs without ANF transformation. 
+Therefore, control flows only can back to the return point \verb|b| through the stack $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}} \to \widetilde{a_k{}_{init}}$. Eventually, JsCFA either never mismatches return flows with their corresponding call sites or directly analyze input programs without ANF transformation.
 
 
 \end{document}
