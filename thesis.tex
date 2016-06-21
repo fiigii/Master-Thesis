@@ -219,8 +219,8 @@ We describe pushdown CFA algorithms on ANF style lambda calculus.
 \begin{aligned}
 \label{eq:bnf}
 e \in Exp ::= {}& (let\ ((x\ (f\ \ae)))\ e) {} \\
-&|(let\ ((y\ \ae))\ e) {}\\
-&|\ \ae
+| & (let\ ((y\ \ae))\ e) {}\\
+| & \ \ae
 \end{aligned}
 \]
 \[
@@ -666,11 +666,7 @@ coordinates {(mj09,37) (eta,22)
 coordinates {(mj09,28) (eta,16)
    (kcfa2,110) (kcfa3,348) (blur,63) (loop2,139) (sat, 734)
    (ack, 363) (cpstak, 18) (tak, 945) (fib,1928) (empty,0)};
-\addplot
-coordinates {(mj09,55) (eta,26)
-   	(kcfa2,135) (kcfa3,275) (blur,75) (loop2,68) (sat, 199)
-    (ack, 82) (cpstak, 27) (tak, 133) (fib,209) (empty,0)};
-\legend{AAC,\textit{h}-CFA,P4F}
+\legend{AAC,\textit{h}-CFA}
 \end{axis}
 \end{tikzpicture}
 \caption{1-call-site sensitive analysis comparison}
@@ -685,7 +681,7 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 
 \section{Static Analysis of JavaScript}
 \label{sec:Static Analysis of JavaScript}
-JavaScript becomes a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
+JavaScript have become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
 In traditional software engineering area, static analysis have become an effective technology to help human to detect deep semantic errors and defects, but the state-of-art in JavaScript static analysis is still not a patch on static languages such as C/C++ and Java.
 
 One of the most critical reason that cause the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of functions. In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site. Simultaneously, JavaScript heavy relies on first-class functions to implement certain extra high-level semantics, such as methods, block scoping, and module import/export, etc.
@@ -694,11 +690,13 @@ Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScr
 \subsection{Syntax Interface}
 \label{sub:Syntax}
 
-The abstract semantics of JsCFA is derived from JAM a unbounded stack semantics for JavaScript analysis. JAM describes a pushdown reduction semantics in $\lambda_{JS}$-calculus, and we modify it to work with direct high level AST of JavaScript in CESK abstract machine. The abstract syntax tree interface is given in Figure~\ref{fig:js-stmt} and Figure~\ref{fig:js-expr}.
+In JsCFA, we convert JavaScript standard semantics to a unbounded stack small-step abstract machine in CESK style.
+The CESK machine operates over direct JavaScript abstract syntax tree (AST) yielded from the parser.
+ The abstract syntax tree interface is given in Figure~\ref{fig:js-stmt} and Figure~\ref{fig:js-expr} in Scala code.
 Most of the data structures are separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression| respectively.
-JsCFA distinguishes \emph{left values} and \emph{right values} at syntactical level that simplifies semantics' implementation, so expressions that eventually work out left values are subclasses of \verb|LValue|.
+JsCFA distinguishes \emph{left values} and \emph{right values} at syntactical level that simplifies the implementation of CESK machine, so expressions eventually reduced to left values are subclasses of \verb|LValue|.
 Trait \verb|AbstractSyntaxTree| defines field \verb|id| to encode the statically and uniquely syntactic label for each AST node. Meanwhile, it decelerates and implements method \verb|generateFrom| that spreads the statically syntactic information from AST nodes to local continuations and values.
-The top level of a paogram is a sequence of statements warped in \verb|Script|.
+The top level of a program is a sequence of statements warped in \verb|Script|.
 
 \begin{figure}
 %\small
@@ -796,7 +794,7 @@ Above definition shows two differences from original AAM and \textit{h}-CFA\@. C
 Meanwhile, there is an extra fild \verb|localStack| playing the role of intro-procedural continuation stack, but AAM and \textit{h}-CFA not. In \textit{h}-CFA, before analysis, ANF transformation already flats all intro-procedural control flows to let-binding, so it just requires to tackle inter-procedural continuations in stores. Besides, original AAM saves all of the continuations (inter and intro-procedural) into continuation stores, but actually only inter-procedural control flows have to be retrieved nondeterministically and intro-procedural continuations are always deterministic.
 Consequently, we partition continuations in two places that make semantics clearer and performance better.
 
-Following JAM, the abstracting abstract machine of JsCFA also distinguish three types of transition states: evaluation, continuation, and application.
+JsCFA distinguishes three types of transition states: evaluation, continuation, and application.
 
 Evaluation transition rules accept a state and match its control string component to generate next states. Evaluation transitions firstly search values and reducible expressions/statements (we refer states carry reducible expressions/statements to complete states in JsCFA) in the control strings.
 If the control string is a value (instance of class \verb|JSValue|), analysis would be dispatched to a continuation transition that depends upon  the following control flow step retrieved from the top of local stack. Then the continuation transition determines how to use the value.
@@ -1060,6 +1058,16 @@ def transitApplication(state: State): Set[State] = state match {
 \label{fig:app-expr}
 \end{figure}
 
+Once the abstract interpreter of JsCFA launches, the parser reads input program and convert it to a AST warped as a \verb|Script| object at top level.
+Then \verb|inject| takes the AST to generate initial machine state that contains all JavaScript built-in variables, objects, and functions into $\widetilde{initEnv}$ and $\widetilde{initMemory}$. Then work list algorithm starts evaluation transition on the initial state.
+\[
+inject_{JsCFA} : AbstractSyntaxTree \to State
+\]
+\[
+inject_{JsCFA}(script) = State(script, \widetilde{initEnv}, \varnothing, \widetilde{a_k{}_{init}}, \widetilde{initMemory})
+\]
+
+
 \subsection{Constant Propagation Lattices}
 \label{sub:Constant Propagation Lattices}
 
@@ -1249,7 +1257,7 @@ The only difference between function calls and method calls is that method invoc
 New call (functions called as constructors) is another function invocation form in JavaScript, which generates a new and empty object at the ``new call site'', passes the object as \verb|this| argument, and return the generated object as computing result of the new call. In JsCFA, we implement the ``return the generated object'' by a trick, which puts a extra local continuation object \verb|KUseValue(obj)| into the new \verb|localStack|.
 \verb|KUseValue(obj)| represents a low-level instruction that indicates abstract interpreter should throw away functions' original return values and use the specific object \verb|obj| to replace.
 
-\subsection{Configureable Context-Sensitivity and Partial Object Sensitivity}
+\subsection{Configureable Context-Sensitivity and Partial Object-Sensitivity}
 \label{sub:Configureable}
 Context sensitivity is an effective approach to impact precision and performance of static analysis. Different context choices yield different analysis results and performance. On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) contributes precision influence on specific analysis problems. On the other hand, certain contexts can select different precision level with different performance cost, such as call-site sensitivity in \textit{k}-CFA\@.
 One of the most crucial contributions of AAM is that makes context sensitivity configureable. Values' contexts are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Addr}$. %cite
