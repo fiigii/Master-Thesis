@@ -44,20 +44,20 @@ In control flow analysis (CFA), call/return mismatch is always a problem that dr
 due to its coupling of call/return matching with context-sensitivity of values.
 Meanwhile, Abstracting Abstract Machine (AAM), a configurable framework for constructing abstract interpreters,
 introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable.
-Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide perfect call/return matching for AAM by modeling call-stack as a pushdown system.
+Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide call/return matching for AAM by modeling call-stack as a pushdown system.
 However, PDCFA needs extra annotated edges to represent stack actions that leads to implementation difficulty.
 AAC incurs high overhead while P4F cannot work with monovariant analysis (0-CFA).
-To overcome the above shortcomings, we developed a new method to address the call/return mismatch problem.
+To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
 Our method uses AAM and is very easy to implement for ANF style program.
 Simultaneously, our method reveals an essential property of pushdown CFA,
 which we exploited in the development of a static analyzer for JavaScript without ANF transformation.
-
 \end{abstract}
+
 \section{Introduction}
 \label{Introduction}
 Dynamic programming languages, such as JavaScript, Python, and Ruby, play a significant role in computing areas, such as system management, web development, and scientific computing.
-Over the past decade, JavaScript has become a ubiquitous computing environment.
-However, certain features of JavaScript (e.g. duck-typing, first-class function, and highly dynamic object model) make error detection difficult.
+Particularly, over the past decade, JavaScript has become a ubiquitous computing environment.
+However, certain features of JavaScript (e.g.\ duck-typing, first-class function, and highly dynamic object model) make error detection difficult.
 To this end, CFA has become a viable approach to detect deep semantic defects before actual running of JavaScript programs.
 However, the original CFA (i.e. \textit{k}-CFA) is too imprecise for realistic programs.
 For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces the precision of analysis.
@@ -84,7 +84,7 @@ However, any recursive function call will break the rule and propagate spurious 
 Meanwhile, the performance is unacceptable even when $k = 1$.
 
 \subsection{Pushdown CFA}
-The core idea of pushdown CFA is to mimic call/return flow as a unbounded call stack for ordinary calls and to summarize the call stack for recursive calls because unbounded call stack is uncomputable in static analysis.
+The core idea of pushdown CFA is to mimic function call/return as a unbounded call stack for ordinary calls and summarizing call stacks for recursive calls because unbounded call stack is uncomputable in static analysis.
 CFA2 %% TODO: citation
 implements the summarization with a tabulate algorithm, %% TODO: right name and citation?
 and PDCFA %% TODO: citation
@@ -93,29 +93,30 @@ Both of CFA2 and PDCFA introduce extra semantics for the target language, which 
 Fortunately, XXX %% TODO: who?
 invented Abstracting Abstract Machine (AAM) %% TODO: citation
 as a configurable framework for constructing abstract interpreters in the CESK abstract machine style. %% TODO: citation
-AAM not only allocates values in the store (like the original \textit{k}-CFA does), but also represents control flow as store-allocated continuations.
-In AAM, each CESK state does not directly carry continuation, but a continuation address that refers to a set of continuations in the store.
+Science AAM not only allocates values in the store (like the original \textit{k}-CFA does), but also represents control flow as store-allocated continuations.
+In AAM, each CESK state does not directly carry any continuation, but a continuation address that refers to a set of continuations in the store.
 Merging several continuations in one continuation address achieves the effect of approximating control flows.
 Meanwhile, AAM brings two benefits to control flow analysis.
 On one hand, it makes the soundness of abstract interpreters easily acquired because values and continuations are both in the store and
 the store size is fixed.
+Hence, the number of machine states that abstract interpreters generate is always finite.
 On the other hand, store-allocated continuation separates the original context-sensitivity (polyvariant values) strategies from
 the call/return matching techniques.
-AAC and P4F, %% TODO: citation
+AAC (Abstracting Abstract Control) and P4F (pushdown control flow analysis for free), %% TODO: citation
 both based on AAM, convert call/return matching problem to continuation-address allocation strategy.
-However, AAC incurs high overhead, $O(n^9)$, which puts too much information in the continuation addresses.
-P4F reduced the complexity of AAC, but it is not useful for monovariant analysis.
+However, AAC incurs high overhead in theory, $O(n^9)$, and perform slow convergence in practice. %% TODO: citation
+P4F takes better time complexity in polyvariant analysis, but it just offers limited call/return matching strength and is not useful for monovariant analysis.
 
 In this paper, we introduce a new method to address the call/return mismatch problem.
-In terms of implementation, this method is as simple as P4F and AAC.
+In terms of implementation, this method is as simple as P4F and AAC\@.
 It provides perfect call/return matching for monovariant and polyvariant control flow analysis.
-Since this method includes a \emph{program execution history} in the continuation address along with callee's boy, we name it \textit{h}-CFA\@.
+Since this method records \emph{program execution histories} through the abstract interpretation process and uses it to encode continuation addresses, we name it \textit{h}-CFA\@.
 The program execution history can be regarded as call strings with automatically determined length.
-For non-recursive calls, execution history always provides enough context information, no matter how deep the call sequence is.
-The execution history automatically stops growth for recursive calls while the worklist algorithm is responsible
+For non-recursive calls, the execution history always provides enough context information, no matter how deep the call sequence is.
+Moreover, the history automatically stops growth for recursive calls while the worklist algorithm is responsible
 for finding the fixed-point of recursive computation.
-Furthermore, we claim that for call/return matching (polyvariant continuations), finite length of \textit{k} is enough,
-which reaches N (size of input program) in the worst case.
+%Furthermore, we claim that for call/return matching (polyvariant continuations), finite length of \textit{k} is enough,
+%which reaches N (size of input program) in the worst case.
 
 To illustrate the difference between P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
 implemented them for Scheme language. We ran the four algorithms on on a small program shown in Figure~\ref{fig:fib} and
@@ -171,9 +172,9 @@ and it is used to compare the strength of call/return matching of four pushdown 
 \end{tabular}
 \end{center}
 \caption{
-State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA;
-(2) PDCFA (pushdown CFA); (3) PDCFA with abstract GC; (4) \textit{h}-CFA\@.
-(2--4) are run with 0-CFA.
+State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA\@;
+(2) PDCFA (pushdown CFA); (3) PDCFA with abstract GC\@; (4) \textit{h}-CFA\@.
+(2--4) are run with 0-CFA\@.
 }
 \label{fig:state-graphs}
 \end{figure}
@@ -181,8 +182,10 @@ State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA;
 
 As the \textit{h}-CFA graph shows, there are three similar subgraphs in the state transition process, which obviously illustrates
 no call/return flow merged in \textit{h}-CFA due to three subgraphs connected by single transition edges.
+PDCFA graph also illustrates the similar pattern.
+To compare, P4F that just supplies limited call/return matching merges too many control flows in this recursive program.
 
-A comparision of the related algorithms with \textit{h}-CFA is shown in Figure~\ref{fig:comparison}
+A comparison of the related algorithms with \textit{h}-CFA is shown in Figure~\ref{fig:comparison}
 
 \begin{figure}[t]
 \centering
@@ -190,30 +193,49 @@ A comparision of the related algorithms with \textit{h}-CFA is shown in Figure~\
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
 Algorithm &
-\begin{tabular}[c]{@{}c@{}}Match \\ Strength\end{tabular} &
+\begin{tabular}[c]{@{}c@{}}Match \\ Strength\end{tabular}  &
 \begin{tabular}[c]{@{}c@{}}Mono \\ -variance\end{tabular}  &
 \begin{tabular}[c]{@{}c@{}}Poly \\ -variance\end{tabular}  &
   Implementation &
-\begin{tabular}[c]{@{}c@{}}Complexity on \\ Monovariance\end{tabular} \\ \hline
-CFA2      & Infinite        & \checkmark   &              & Difficult    & Exponential                \\ \hline
-P4F       & Limited         &              & \checkmark   & Easy         & $O(n^3)$                   \\ \hline
-PDCFA     & Infinite        & \checkmark   & \checkmark   & Difficult    & $O(n^6)$                   \\ \hline
-AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^9)$                   \\ \hline
-\textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & $O(n^5)$                   \\ \hline
+\begin{tabular}[c]{@{}c@{}}Complexity on \\ Monovariance\end{tabular}                     \\ \hline
+CFA2      & Infinite        & \checkmark   &              & Difficult    & Exponential    \\ \hline
+P4F       & Limited         &              & \checkmark   & Easy         & $O(n^3)$       \\ \hline
+PDCFA     & Infinite        & \checkmark   & \checkmark   & Difficult    & $O(n^6)$       \\ \hline
+AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^9)$       \\ \hline
+\textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & Exponential    \\ \hline
 \end{tabular}
 \caption{Comparison of pushdown CFA algorithms in terms of analysis precision, time complexity, and ease of implementation.}
 \label{fig:comparison}
 \end{figure}
 
+\subsection{Static Analysis for JavaScript}
+\label{sub:Static Analysis for JavaScript}
+Besides, we have developed a control flow analyzer for JavaScript based on our \textit{h}-CFA approach, which is named JsCFA\@.
+As one of the most popular programming language, JavaScript intensively uses first-class functions in almost every program.
+For example, methods, constructors, modules, and asynchronous I/O of JavaScript are all dependent on first-class function.
+Hence, good control flow analysis is very important for JavaScript static analysis, especially inter-procedural analysis.
+
+Consequently, when we design JsCFA, we try to do our best to provide control flow facts as precise as possible.
+First of all, \textit{h}-CFA is applied in JsCFA to perfectly match call/return flows by an indirect approach, which avoids recording the program execution history along abstract interpretation and ANF transformation before analysis.
+Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
+Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
+JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit. %TODO: cite
 
 \subsection{Contributions}
 \label{sub:Contributions}
 
 \section{Pushdown CFA in AAM}
-\label{sec:Pushdown Control Flow Analysis in Abstracting Abstract Machines}
+\label{sec:PushdownAAM}
+There are already certain pushdown CFA techniques exiting in abstracting abstract machine %TODO: cite
+framework.
+The AAM methodology considerably simplifies implementation of abstract interpreters via introducing store-allocated values and continuations.
+Meanwhile, the soundness of AAM is easily acquired.
+Therefore, we also depend upon this theory to develop \textit{h}-CFA and our JavaScript analyzer, JsCFA\@.
+In this section we will review abstract interpretation in AAM concepts to help readers to understand our techniques.
+
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
-We describe pushdown CFA algorithms on ANF style lambda calculus.
+We will be describing pushdown CFA algorithms on ANF style lambda calculus.
 \[
 \tag{expressions}
 \begin{aligned}
@@ -235,11 +257,13 @@ lambda \in Lambda ::= (\lambda\ (x)\ e)
 \tag{variables}
 x,y \in Var \mbox{ is a set of identifiers}
 \]
+Above syntax definition just focuses on three kinds of expressions, calls, declarations, and returns.
+Other syntactic components, such as tail calls, conditional branching, do not complicate our semantics, so we leave them out.
+ANF sets a unique label for every intermediate expression, and these unique labels help we to implement and express \textit{h}-CFA easily.
+Moreover, all of the intra-procedural control flows (the order of operations) are already compiled into \verb|let| forms, which simplifies the semantics and accelerates our implementation.
 
-This section reviews AAM\@.
-
-Definitions:
-
+Abstracting abstract machine (AAM) describes abstract interpreters that run and approximate a language on CESK abstract machine style.
+The abstract interpreter operates over CESK machine states $\widetilde{\varsigma}$.
 \[
 \tag{states}
 \widetilde{\varsigma}\in\widetilde{\Sigma} \triangleq Exp \times \widetilde{Env} \times \widetilde{Store}
@@ -281,18 +305,18 @@ Definitions:
 \tag{continuation addresses}
 \widetilde{a_k} \in \widetilde{KAddr} \mbox{ is a finite set}
 \]
+Environments ($\widetilde{\rho}$) map variables to their binding address ($\widetilde{a}$) in the scope. Value stores save every value ($\widetilde{v}$) into a slot encoded by an address. Environments cooperate with values implementing the semantics of variable access.
+Closure ($\widetilde{clo}$) is the only value form of pure lambda calculus, which pairs a lambda abstraction with the environment form its defining point to implement static scoping.
+In our semantics, continuations ($\widetilde{k}$) just represent call stack frames because intra-procedural continuations are already converted to \verb|let| sequences.
+Each frame ($\widetilde{\phi}$) includes:
+(1) a return point that is a variable to accept and bind the result of current application,
+(2) an expression the control flow returns to,
+(3) an environment to restore,
+(4) a continuation address that points to ``next'' continuations and builds up the linked stack structure.
 
-Abstract Semantics:
-
-alloc:
-\[
-\widetilde{alloc_0} (x, \widetilde{\varsigma}) = x
-\]
-\[
-\widetilde{alloc_1} (x, \widetilde{\varsigma}) = (x, \widetilde{\varsigma})
-\]
-
-calls:
+Transition rules of CESK abstract machine operate over a input state and generate a success state.
+However, an abstracting abstract machine has to output a set of states due to the nondeterministic semantics of abstract interpretation.
+Function application transition rule is defined below.
 \[
 \overbrace{
 \big((let\ ((y\ (f\ \ae))\ e)), \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k} \big)
@@ -356,7 +380,7 @@ returns:
 \widetilde{a} = \widetilde{alloc}(x, \widetilde{\varsigma})
 \]
 
-eval:
+The helper $\widetilde{eval}$ directly computes values of atomic expressions.
 \[
 \widetilde{eval} : AExp \times \widetilde{Env} \times \widetilde{Store} \to \widetilde{Value}
 \]
@@ -368,18 +392,31 @@ eval:
 \widetilde{eval}(lambda, \tilde{\rho}, \tilde{\sigma}) \triangleq \{(lambda, \tilde{\rho})\}
 \]
 
+alloc:
+\[
+\widetilde{alloc_0} (x, \widetilde{\varsigma}) = x
+\]
+\[
+\widetilde{alloc_1} (x, \widetilde{\varsigma}) = (x, \widetilde{\varsigma})
+\]
+
 \subsection{Defect of AAM}
 \label{sub:Defect of AAM}
-Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return match orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return match (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
+Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return matching orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return matching (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
 
 \[
 \widetilde{kalloc_{P4F}} ((e, \widetilde{\rho}, \widetilde{\sigma}, \widetilde{\sigma_k}, \widetilde{a_k}), e\textprime, \widetilde{\rho}\textprime, \widetilde{\sigma}\textprime) = (e\textprime, \widetilde{\rho}\textprime)
 \]
 
-Continuation addresses are represented by $(e\textprime, \widetilde{\rho}\textprime)$ that the most obvious change is it packing callee function  with ``target environment'' ($\widetilde{\rho}\textprime$) of current application.
-Firstly, environments ($Var \rightharpoonup \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvatiant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into the value addresses. Thus, P4F can be regarded as an adaptive pushdown control flow analysis algorithm that automatically achieves finite call/return match support from values' polyvatiant strategy (implementing of $\widetilde{alloc}$ function).
-Secondly, P4F also reveals a significant fact that why original AAM misses call/return flow match. One of the most important contributions of AAM is that separates analysis context requirement from termination of abstract interpreters. All things (values and continuations) allocated in the store make termination of abstract interpreters easily reached because any implementation of $\widetilde{alloc}$ is sound.
-However, the original $\widetilde{kalloc}$ function that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flow. P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts. Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM\@: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis results.
+In P4F, continuation addresses are represented by $(e\textprime, \widetilde{\rho}\textprime)$ that the most obvious change is it packing callee function with ``target environment'' ($\widetilde{\rho}\textprime$) of current application.
+Firstly, environments ($Var \rightharpoonup \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvatiant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into value's addresses.
+Thus, P4F can be regarded as an adaptive pushdown control flow analysis algorithm that automatically achieves finite call/return matching support from values' polyvatiant strategy. %(implementing of $\widetilde{alloc}$ function).
+Secondly, P4F also reveals a significant fact that why original AAM misses call/return flow matching.
+One of the most important contributions of AAM is that separates analysis context requirements from termination of abstract interpreters.
+All things (values and continuations) allocated in the store make termination of abstract interpreters easily reached because fixed size of stores lead finite number of abstract machine states, so any implementation of $\widetilde{alloc}$ is sound.
+However, the original $\widetilde{kalloc}$ function of AAM that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flows.
+P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts.
+Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM\@: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis results.
 
 \section{The Essence of Pushdown Control Flow Analysis}
 \label{sec:The Essence of Pushdown Control Flow Analysis}
@@ -441,7 +478,7 @@ Data types and notations of $CESK^H$ are defined below. We changed parts of $CES
 \widetilde{a_k^H} \in \widetilde{KAddr} \ is\ a\ finite\ set
 \]
 
-In ANF programs, environment naturally maintains intro-procedural execution history because ANF explicitly extracts intro-procedural control flows in let-bindings and saves every intermediate result in a local variable.
+In ANF programs, environment naturally maintains intra-procedural execution history because ANF explicitly extracts intra-procedural control flows in let-bindings and saves every intermediate result in a local variable.
 Consequently, the program execution histories can be implemented as propagating environments by $\widetilde{History}$ field of $CESK^H$ machine states.
 We consider execution histories as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, execution history can automatically stop growth for recursive calls, and the work list algorithm will be responsible for finding the fixed-point of recursive computation.
 
@@ -679,13 +716,19 @@ coordinates {(mj09,28) (eta,16)
 Although \textit{h}-CFA provides precise call/return flows to monovariance and polyvariance both without extra effort, it just holds on ANF programs. Next section, we will show that certain situations and analysis strategies limit us not being able to compile input programs to ANF before analysis.
 Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \textit{k}-CFA cannot perfect match infinite call/return flows. According to this discovery, we develop another pushdown analysis technique that is friendly for direct AST and on longer requires the execution history.
 
-\section{Static Analysis of JavaScript}
-\label{sec:Static Analysis of JavaScript}
-JavaScript have become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
+\section{Design of JsCFA}
+\label{sec:JsCFA}
+JavaScript has become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
 In traditional software engineering area, static analysis have become an effective technology to help human to detect deep semantic errors and defects, but the state-of-art in JavaScript static analysis is still not a patch on static languages such as C/C++ and Java.
 
-One of the most critical reason that cause the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of functions. In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site. Simultaneously, JavaScript heavy relies on first-class functions to implement certain extra high-level semantics, such as methods, block scoping, and module import/export, etc.
-Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScript (ECMAScript 3) that based on \textit{h}-CFA computes more precise control flow analysis, points-to analysis, and constant propagation. Although JsCFA works out almost monovariant, context-insensitive analysis results, based on AAM, context-sensitivity is easily obtained and configurable.
+One of the most critical reason that causes the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of other  functions.
+In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site.
+Simultaneously, JavaScript heavily relies on first-class functions to implement certain high-level semantics, such as methods, block scoping, and module import/export, etc.
+Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScript (ECMAScript 3) based on \textit{h}-CFA computes more precise control flow analysis.
+Although JsCFA works out almost monovariant, context-insensitive analysis results, AAM allows users to obtained context-sensitivity easily.
+Thus we also implemented context-sensitive analysis for certain necessary situations.
+
+This section describes essential pieces of JsCFA designing, including abstract syntax, abstract semantic rules, context-sensitivity, analysis improvement, and usage of \textit{h}-CFA\@.
 
 \subsection{Syntax Interface}
 \label{sub:Syntax}
@@ -774,7 +817,7 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}
 \subsection{Transition Rules}
 \label{sub:Transition}
 
-The core data structure of the AAM of JsCFA is class \verb|State| (corresponding to $\tilde{\varsigma}$), which has six components \verb|e| (control string), \verb|env| (environment), \verb|localStack| (intro-procedural continuation stack), \verb|a| (inter-procedural continuation address, or called stack frame pointer), \verb|store| (value store), and \verb|stack| (continuation store). Among them, ``store'' and ``stack'' are packed into the \verb|memory| object that encapsulates certain methods to manipulate the value and continuation store.
+The core data structure of the AAM of JsCFA is class \verb|State| (corresponding to $\tilde{\varsigma}$), which has six components \verb|e| (control string), \verb|env| (environment), \verb|localStack| (intra-procedural continuation stack), \verb|a| (inter-procedural continuation address, or called stack frame pointer), \verb|store| (value store), and \verb|stack| (continuation store). Among them, ``store'' and ``stack'' are packed into the \verb|memory| object that encapsulates certain methods to manipulate the value and continuation store.
 
 \lstset{language=Scala, mathescape}
 \begin{lstlisting}
@@ -785,13 +828,13 @@ The core data structure of the AAM of JsCFA is class \verb|State| (corresponding
                    memory: Memory)
 
   case class Memory(store: mutable.Map[JSReference, Set[JSValue]],
-                    stack: mutable.Map[StackAddress, Set[GlobalFrame]]) {
+                    stack: mutable.Map[StackAddress, Set[Frame]]) {
     $\dots$
   }
 \end{lstlisting}
 
 Above definition shows two differences from original AAM and \textit{h}-CFA\@. Class \verb|State| does not contain ``History'' field because we implement \textit{h}-CFA indirectly for JsCFA, and this modification will be discussed in Section~\ref{subs:stack-gc}.
-Meanwhile, there is an extra fild \verb|localStack| playing the role of intro-procedural continuation stack, but AAM and \textit{h}-CFA not. In \textit{h}-CFA, before analysis, ANF transformation already flats all intro-procedural control flows to let-binding, so it just requires to tackle inter-procedural continuations in stores. Besides, original AAM saves all of the continuations (inter and intro-procedural) into continuation stores, but actually only inter-procedural control flows have to be retrieved nondeterministically and intro-procedural continuations are always deterministic.
+Meanwhile, there is an extra fild \verb|localStack| playing the role of intra-procedural continuation stack, but AAM and \textit{h}-CFA not. In \textit{h}-CFA, before analysis, ANF transformation already flats all intra-procedural control flows to let-binding, so it just requires to tackle inter-procedural continuations in stores. Besides, original AAM saves all of the continuations (inter and intra-procedural) into continuation stores, but actually only inter-procedural control flows have to be retrieved nondeterministically and intra-procedural continuations are always deterministic.
 Consequently, we partition continuations in two places that make semantics clearer and performance better.
 
 JsCFA distinguishes three types of transition states: evaluation, continuation, and application.
@@ -965,12 +1008,12 @@ def transitApplication(state: State): Set[State] = state match {
   case State(KReturnComplete(v), env, localStack, a, memory) =>
       val newMemory = memory.copy(state)
       for {
-        GlobalFrame(returnPoint, oldStack, savedEnv, newGlobalAddress)
-            <- newMemory.getGlobalFrames(a) //get the stack frame
+        Frame(returnPoint, oldStack, savedEnv, newGlobalAddress)
+            <- newMemory.getFrames(a) //get the stack frame
       } yield {
         if(oldStack.isEmpty || !oldStack.head.isInstanceOf[KUseValue]) {
           //if current function called by "new", return "this" object
-          for(vs <- newMemory.getValue(v)) {
+          for(vs <- newMemory.getValues(v)) {
             newMemory.putValue(returnPoint, vs)
           }
         }
@@ -979,7 +1022,7 @@ def transitApplication(state: State): Set[State] = state match {
 
   case State(KIfComplete(cond, t, e), env, localStack, a, memory) =>
       for {
-        obj <- memory.getValue(cond)
+        obj <- memory.getValues(cond)
         boolValue = ToBoolean(obj)
         res <- boolValue match {
           case JSBoolean(ConstantBoolean(true)) =>
@@ -1004,7 +1047,7 @@ def transitApplication(state: State): Set[State] = state match {
   case State(VarRef(x), env, localStack, a, memory) =>
       val newMemory = memory.copy(state)
       val xRef = lookup(env, x)
-      for(vs <- newMemory.getValue(xRef)){
+      for(vs <- newMemory.getValues(xRef)){
         newMemory.putValue(JSReference(state.e.id), vs)
       }
       Set(State(JSReference(state.e.id), env, localStack, a, newMemory))
@@ -1035,7 +1078,7 @@ def transitApplication(state: State): Set[State] = state match {
 
   case State(KAssignExprComplete(op, lv, rv), env, localStack, a, memory) =>
       val newMemory = memory.copy(state)
-      for(value <- newMemory.getValue(rv)) {
+      for(value <- newMemory.getValues(rv)) {
           newMemory.putValue(lv.asInstanceOf[JSReference], value)
       }
       Set(State(rv, env, localStack, a, newMemory))
@@ -1043,8 +1086,8 @@ def transitApplication(state: State): Set[State] = state match {
   case State(KInfixExprComplete(op, rv1, rv2), env, localStack, a, memory) =>
       val newMemory = memory.copy(state)
       for {
-          v1 <- newMemory.getValue(rv1)
-          v2 <- newMemory.getValue(rv2)
+          v1 <- newMemory.getValues(rv1)
+          v2 <- newMemory.getValues(rv2)
       } yield {
           val res = infixFunc(op, v1, v2, newMemory)
           res.generateFrom(state.e)
@@ -1067,11 +1110,11 @@ inject_{JsCFA} : AbstractSyntaxTree \to State
 inject_{JsCFA}(script) = State(script, \widetilde{initEnv}, \varnothing, \widetilde{a_k{}_{init}}, \widetilde{initMemory})
 \]
 
-
+\iffalse
 \subsection{Constant Propagation Lattices}
 \label{sub:Constant Propagation Lattices}
 
-JsCFA's abstract machine architecture decouples the structure of abstract interpreters from details of JavaScript semantics. For example, in reduction rule of infix expressions, the semantics are mainly fulfilled by function \verb|infixFunc| that takes the infix operator, addresses of operands, and the current memory and returns a value as consequent. When we implement binary expressions of JavaScript (Firure~\ref{fig:infix}), we can just translate and abstract ECMAScript language specification to Scala code, but do not care about the abstract interpreter. Firure~\ref{fig:infix} shows the semantics of multiplication and addition operator that also implements constant propagation of JsCFA\@. Then the result given by function \verb|infixFunc| will be saved into the store. Simultaneously, if there are serval different constant values with same type flow into one slot of store, they would be lifted through the constant propagation lattice.
+The abstract machine of JsCFA decouples non-deterministic abstract semantics from details of JavaScript concrete semantics. For example, in the reduction rule of infix expressions, the semantics are mainly fulfilled by function \verb|infixFunc| that takes the infix operator, addresses of operands, and the current memory and returns a value as consequence. When we implement binary expressions of JavaScript (Firure~\ref{fig:infix}), we can just translate and abstract ECMAScript language specification to Scala code. Firure~\ref{fig:infix} shows the semantics of multiplication and addition operator that also implements constant propagation of JsCFA\@. Then the result given by function \verb|infixFunc| will be saved into the store. Simultaneously, if there are serval different constant values with same type flow into one slot of store, they would be lifted through the constant propagation lattice.
 
 \begin{tikzpicture}[node distance=1.5cm]
 \title{Constant Propagation Lattice on Numbers der VariableNumber}
@@ -1185,7 +1228,7 @@ def infixFunc(op: InfixOp, e1: JSValue, e2: JSValue, memory: Memory): JSValue =
   \caption{Parts of Abstract Semantics of Infix Expressions in JavaScript}
 \label{fig:infix}
 \end{figure}
-
+\fi
 \subsection{Store and Stack}
 \label{sub:Store and Stack}
 
@@ -1194,22 +1237,40 @@ Class \verb|Memory| packs value store and continuation store in one object and p
 putValue: Memory \times JSReference \times JSValue \to Unit
 \]
 \[
-getValue: Memory \times JSReference \to \mathcal{P}(JSValue)
+getValues: Memory \times JSReference \to \mathcal{P}(JSValue)
 \]
 \[
-pushGlobalStack: Memory \times StackAddress \times GlobalFrame \to Unit
+pushFrame: Memory \times StackAddress \times Frame \to Unit
 \]
 \[
-getGlobalFrames: Memory \times StackAddress \to \mathcal{P}(GlobalFrame)
+getFrames: Memory \times StackAddress \to \mathcal{P}(Frame)
 \]
 
-Method ``putValue'' and ``pushGlobalStack'' imperatively updates value store and continuation store respectively. Meanwhile, \verb|getValue| and ``getGlobalFrames'' retrieves values and stack frames nondeterministically.
+Method \verb|putValue| and \verb|pushFrame| imperatively updates value store and continuation store respectively.
+They both join the given value/frame to existing elements that already inhabit in the address.
+
+\[
+m.putValue(a, v) = this.store[a] := this.store(a) \cup \{v\}
+\]
+\[
+m.pushFrame(a, f) = this.stack[a] := this.stack(a) \cup \{f\}
+\]
+Meanwhile, \verb|getValues| and \verb|getFrames| retrieves values and stack frames nondeterministically.
+\[
+m.getValues(a) = this.store(a)
+\]
+\[
+m.getFrames(a) = this.stack(a)
+\]
 
 \subsection{Functions, Methods, and Constructors}
 \label{sub:Functions, Methods, and Constructors}
 
-The semantics of function call in JavaScript is more complex than other programming languages. There are three patterns of calls, function call, method call, and new call. Because JavaScript is a prototype-based object-oriented language, it uses first-class functions to implement methods and constructors of objects.
-Application transition rule of function call is shown in Figure~\ref{fig:app-call}, which extracts called functions (closures in function objects) and arguments by \verb|getValue|, and extends the closure environment with these arguments. Moreover, \verb|this| is also regarded as a implicit argument and we map \verb|this| to the address of global object (\verb|window| in browser environment and \verb|global| in ``node.js''). Then we save the current computing context (return point, local stack, evaluation environment, and stack pointer) to a ``global frame'' and push it on the stack. The address of top of stack is generated by function \verb|allocStackAddress|, which implements the call/return strategy of JsCFA and we will describe it in Section~\ref{subs:stack-gc}. Finally, the abstract interpreter is going to evaluate the function bodies with extended environments on new local stack.
+The semantics of function invocation in JavaScript is more complex than other programming languages.
+There are three patterns of invocations, function call, method call, and new call.
+
+Application transition rule of function call is shown in Figure~\ref{fig:app-call}, which extracts called functions (closures in function objects) and arguments by \verb|getValues|, and extends the closure environment with these arguments. Then, \verb|this| is also regarded as a implicit paramter and we map \verb|this| to the address of global object (\verb|window| in browser environment and \verb|global| in ``node.js''). Next, we save the current computing context (return point, local stack, evaluation environment, and stack pointer) to a frame and push it on the stack (continuation store).
+The address of top of stack is generated by function \verb|allocStackAddress|, which implements the call/return strategy of JsCFA and we will describe it in Section~\ref{subs:stack-gc}. Finally, the abstract interpreter is going to evaluate the function bodies with extended environments and an empty local stack.
 
 \begin{figure}
   \lstset{language=Scala}
@@ -1217,7 +1278,7 @@ Application transition rule of function call is shown in Figure~\ref{fig:app-cal
 case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
     val newMemory = memory.copy(state)
     for {
-        f <- newMemory.getValue(funcRef) //get function objects
+        f <- newMemory.getValues(funcRef) //get function objects
         if isCallable(f)
         JSClosure(func@FunctionExpr(name, ps, funcBody), savedEnv) =
             f.asInstanceOf[JSObject].code
@@ -1235,7 +1296,7 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
         val newEnv = savedEnv ++ Map(newEnvPart: _*)
 
         for(p <- psAddress.zip(args)) {
-          for(vs <- newMemory.getValue(p._2)) {
+          for(vs <- newMemory.getValues(p._2)) {
             newMemory.putValue(p._1, vs)
               //pass actual parameters to formal parameters
           }
@@ -1243,8 +1304,8 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
 
         val nextAddress = allocStackAddress(state, funcBody, newEnv)
           //allocate the stack frame
-        newMemory.pushGlobalStack(nextAddress,
-                                  GlobalFrame(alloc(state.e), localStack, env, a))
+        newMemory.pushFrame(nextAddress,
+                                  Frame(alloc(state.e), localStack, env, a))
         State(funcBody, newEnv, emptyLocalStack, nextAddress, newMemory)
     }
 
@@ -1253,30 +1314,41 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
 \label{fig:app-call}
 \end{figure}
 
-The only difference between function calls and method calls is that method invocations extract function objects from receivers and explicitly bring \verb|this| arguments, so we need to set \verb|this| to ``receivers'' in method environments.
-New call (functions called as constructors) is another function invocation form in JavaScript, which generates a new and empty object at the ``new call site'', passes the object as \verb|this| argument, and return the generated object as computing result of the new call. In JsCFA, we implement the ``return the generated object'' by a trick, which puts a extra local continuation object \verb|KUseValue(obj)| into the new \verb|localStack|.
-\verb|KUseValue(obj)| represents a low-level instruction that indicates abstract interpreter should throw away functions' original return values and use the specific object \verb|obj| to replace.
+Because JavaScript is a prototype-based object-oriented language, it uses first-class functions to implement methods and constructors of objects.
+Therefore, the only difference between function calls and method calls is that method invocations extract function objects from receivers and explicitly bring \verb|this| arguments, so we need to set \verb|this| to ``receivers'' in method environments.
+New call (functions called as constructors) is another function invocation form in JavaScript, which generates a new and empty object at the ``new call site'', and passes the object as \verb|this| parameter. Finally abstract interpreters return the generated object as computing result of the new call.
+In JsCFA, we implement the ``return the generated object'' by a trick, which puts a extra local continuation object \verb|KUseValue(obj)| into the new \verb|localStack|.
+\verb|KUseValue(obj)| represents a low-level instruction that indicates the abstract interpreter should throw away functions' original return values and use the specific object \verb|obj| that is created at the ``new call site'' to replace.
 
-\subsection{Configureable Context-Sensitivity and Partial Object-Sensitivity}
+\subsection{Configureable Context-Sensitivity and Adaptive Object-Sensitivity}
 \label{sub:Configureable}
-Context sensitivity is an effective approach to impact precision and performance of static analysis. Different context choices yield different analysis results and performance. On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) contributes precision influence on specific analysis problems. On the other hand, certain contexts can select different precision level with different performance cost, such as call-site sensitivity in \textit{k}-CFA\@.
-One of the most crucial contributions of AAM is that makes context sensitivity configureable. Values' contexts are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Addr}$. %cite
-Even we can mix serval context sensitivity strategies in one analyzer. For example, JsCFA usually allocates context insensitive addresses for most values.
+Context sensitivity is an effective approach to impact precision and performance of static analysis.
+Different context choices yield different analysis results and performance.
+On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) just contributes considerable precision influence on specific analysis problems.
+On the other hand, certain contexts can select different precision levels with different performance costs, such as call-site sensitivity in \textit{k}-CFA\@.
+One of the most crucial contributions of AAM is that makes context sensitivity configureable.
+Contexts of polyvariant values are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Addr}$. %cite
+Even we can mix serval context sensitivity strategies in one analyzer.
+For example, JsCFA usually allocates context insensitive addresses for most values by $\widetilde{alloc_{JsCFA}}$ below.
 \[
 \widetilde{alloc_{JsCFA}}(expression) = JSReference(expression.id)
 \]
-Every expression store its computing result (values) in the slot indicated by its static syntactical label (\verb|expression.id|). However, the context insensitive addresses will dramatically lose precision over dynamic features of JavaScript. Consider the following common example in JavaScript.
+Every expression store its computing result (values) in the slot indicated by its static syntactical label (\verb|expression.id|).
+However, the context insensitive addresses will dramatically lose precision over dynamic features of JavaScript.
+Consider the following common example code in JavaScript, which dynamically adds fields to objects.
 \lstset{mathescape}
 \begin{lstlisting}
   obj["p"] = e$^l$ //"p" is not in obj
 \end{lstlisting}
-In totally monovariant analysis, if serval objects flow into \verb|obj| simultaneously or sequently, after the expression executing all of the objects would have a field \verb|"p"| that refers to values allocated in \verb|JSReference(l)|. However, when other expressions reassign the value of field \verb|"p"| for one of these objects, this modification propagates to each object that flowed into \verb|obj|.
+In totally monovariant analysis, if serval objects flow into \verb|obj| simultaneously or sequently, after the expression executing all of the objects would have a field \verb|"p"| that points to values allocated in \verb|JSReference(l)|.
+However, if other expressions reassign the value of field \verb|"p"| for one of these objects, this modification will propagate to each object that flowed into \verb|obj|.
 
 Thus, we apply object sensitive allocation for the dynamic object extension.
 \[
 \widetilde{alloc^{o}_{JsCFA}}(expression, object) = JSReference(expression.id, object.id)
 \]
-This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc^{o}_{JsCFA}}$ for adding fields, and other situations maintain context insensitive. Ultimately, JsCFA achieves more precise analysis over dynamic objects, but on heavy overhead imported.
+This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc^{o}_{JsCFA}}$ for adding fields, and other situations maintain context insensitive.
+Ultimately, JsCFA achieves more precise analysis over dynamic objects, but no heavy overhead imported.
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
 \label{sub:filtering}
@@ -1452,6 +1524,12 @@ Then the abstract interpreter dives into this call site, when the invocation com
 \]
 
 Therefore, control flows only can back to the return point \verb|b| through the stack $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}} \to \widetilde{a_k{}_{init}}$. Eventually, JsCFA either never mismatches return flows with their corresponding call sites or directly analyze input programs without ANF transformation.
+
+\section{Related Works}
+\label{sec:Related Works}
+
+\section{Future Work}
+\label{sec:Future Work}
 
 
 \end{document}
