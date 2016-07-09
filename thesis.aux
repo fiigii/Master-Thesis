@@ -1,58 +1,129 @@
 \relax 
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}}
-\newlabel{Introduction}{{1}{1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  State transition graphs of: (1) P4F (pushdown control flow analysis for free) with 1-CFA (1-call-site sensitive); (2) PDCFA (pushdown control flow analysis); (3) PDCFA with abstract garbage collection; (4) \textit  {h}-CFA\spacefactor \@m {}. }}{3}}
-\newlabel{fig:state-graphs}{{1}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  The simple example invokes recursive fibonacci function three times on its nontrivial condition. We use the example to compare call/return match strengths of four pushdown control flow analysis algorithms. }}{4}}
+\citation{midtgaard2012control}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Background}{1}}
+\newlabel{Background}{{1}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Control Flow Analysis}{1}}
+\newlabel{sub:CFA}{{1.1}{1}}
+\citation{shivers1991control}
+\citation{cousot1977abstract}
+\citation{vardoulakis2010cfa2}
+\citation{earl2010pushdown}
+\citation{van2010abstracting}
+\citation{felleisen1987calculus}
+\citation{johnson2015abstracting}
+\citation{gilray2016pushdown}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces An example program that causes 0-CFA to produce imprecise results.}}{2}}
+\newlabel{fig:eg1}{{1}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Problems of CFA}{2}}
+\newlabel{sub:Problems of CFA}{{1.2}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Works for Improving CFA}{2}}
+\newlabel{sec:Related Works for Improving CFA}{{2}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Pushdown CFA Algorithms}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  This example calls Fibonacci function three times and it is used to compare the strength of call/return matching of four pushdown CFA algorithms. }}{4}}
 \newlabel{fig:fib}{{2}{4}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Pushdown Control Flow Analysis Comparison}}{4}}
-\newlabel{compare}{{1}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Contributions}{4}}
-\newlabel{sub:Contributions}{{1.1}{4}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Pushdown Control Flow Analysis in Abstracting Abstract Machines}{4}}
-\newlabel{sec:Pushdown Control Flow Analysis in Abstracting Abstract Machines}{{2}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Abstracting Abstract Machine}{4}}
-\newlabel{subs:Abstracting Abstract Machine}{{2.1}{4}}
-\newlabel{eq:bnf}{{2.1}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Defect of AAM}{6}}
-\newlabel{sub:Defect of AAM}{{2.2}{6}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}The Essence of Pushdown Control Flow Analysis}{6}}
-\newlabel{sec:The Essence of Pushdown Control Flow Analysis}{{3}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Program Execution History}{7}}
-\newlabel{sub:Program Execution History}{{3.1}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  We rewrite the former example in ANF style. For convenient demonstrating, we use complete Scheme language with numbers and booleans instead of pure lambda calculus. }}{9}}
-\newlabel{fig:anf-fib}{{3}{9}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Polyvariant Continuation}{9}}
-\newlabel{sub:Polyvariant Continuation}{{3.2}{9}}
-\newlabel{eq:show-stack}{{3.2}{10}}
-\newlabel{eq:show-stack}{{3.2}{10}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces monovariant analysis comparison}}{11}}
-\newlabel{0-benchmark}{{4}{11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces 1-call-site sensitive analysis comparison}}{11}}
-\newlabel{1-benchmark}{{5}{11}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Store-widenning}{11}}
-\newlabel{sub:Store-widenning}{{3.3}{11}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Defect of \textit  {h}-CFA}{11}}
-\newlabel{sub:Defect of h-CFA}{{3.4}{11}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Static Analysis of JavaScript}{11}}
-\newlabel{sec:Static Analysis of JavaScript}{{4}{11}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Semantics of JsCFA}{12}}
-\newlabel{sub:Semantics of JsCFA}{{4.1}{12}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Abstract syntax tree data types of statements}}{12}}
-\newlabel{fig:js-stmt}{{6}{12}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Abstract syntax tree data types of expressions}}{13}}
-\newlabel{fig:js-expr}{{7}{13}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Parts of Evaluation Transition Rules}}{15}}
-\newlabel{fig:eval}{{8}{15}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Parts of Continuation Transition Rules for Statements}}{16}}
-\newlabel{fig:cont-stmt}{{9}{16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Abstract Garbage Collection as Stack Filtering}{16}}
-\newlabel{sub:Abstract Garbage Collection as Stack Filtering}{{4.2}{16}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Parts of Continuation Transition Rules for Expressions}}{17}}
-\newlabel{fig:cont-expr}{{10}{17}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Parts of Application Transition Rules for Statements}}{18}}
-\newlabel{fig:app-stmt}{{11}{18}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Parts of Application Transition Rules for Expressions}}{19}}
-\newlabel{fig:app}{{12}{19}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Abstract Garbage Collection as Popping Call Stack Frames}{21}}
-\newlabel{sub:Abstract Garbage Collection as Popping Call Stack Frames}{{4.3}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA\spacefactor \@m {}; (2) PDCFA (pushdown CFA); (3) PDCFA with abstract GC\spacefactor \@m {}; (4) \textit  {h}-CFA\spacefactor \@m {}. (2--4) are run with 0-CFA\spacefactor \@m {}. }}{4}}
+\newlabel{fig:state-graphs}{{3}{4}}
+\citation{sunspider}
+\citation{van2010abstracting}
+\newlabel{compare}{{2.1}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of pushdown CFA algorithms in terms of analysis precision, time complexity, and ease of implementation.}}{5}}
+\newlabel{fig:comparison}{{4}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Static Analysis for JavaScript}{5}}
+\newlabel{sub:Static Analysis for JavaScript}{{2.2}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Contributions}{5}}
+\newlabel{sub:Contributions}{{2.3}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Pushdown CFA in AAM}{5}}
+\newlabel{sec:PushdownAAM}{{3}{5}}
+\citation{flanagan1993essence}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Abstracting Abstract Machine}{6}}
+\newlabel{subs:Abstracting Abstract Machine}{{3.1}{6}}
+\newlabel{eq:bnf}{{{expressions}}{6}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Work List Algorithm}}{9}}
+\newlabel{euclid}{{1}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Store-widenning}{9}}
+\newlabel{sub:Store-widenning}{{3.2}{9}}
+\citation{van2010abstracting}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Pushdown CFA in AAM}{10}}
+\newlabel{sub:PDAAM}{{3.3}{10}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}The Essence of Pushdown Control Flow Analysis}{11}}
+\newlabel{sec:The Essence of Pushdown Control Flow Analysis}{{4}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Program Execution History}{11}}
+\newlabel{sub:Program Execution History}{{4.1}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Polyvariant Continuation}{13}}
+\newlabel{sub:Polyvariant Continuation}{{4.2}{13}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces  We rewrite the former example in ANF style. For convenient demonstrating, we use complete Scheme language with numbers and booleans instead of pure lambda calculus. }}{14}}
+\newlabel{fig:anf-fib}{{5}{14}}
+\newlabel{eq:show-stack}{{4.2}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces monovariant analysis comparison}}{15}}
+\newlabel{0-benchmark}{{6}{15}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces 1-call-site sensitive analysis comparison}}{15}}
+\newlabel{1-benchmark}{{7}{15}}
+\newlabel{eq:show-stack}{{4.2}{15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Defect of \textit  {h}-CFA}{16}}
+\newlabel{sub:Defect of h-CFA}{{4.3}{16}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Design of JsCFA}{16}}
+\newlabel{sec:JsCFA}{{5}{16}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Syntax Interface}{16}}
+\newlabel{sub:Syntax}{{5.1}{16}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Abstract syntax tree data types of statements}}{17}}
+\newlabel{fig:js-stmt}{{8}{17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Transition Rules}{17}}
+\newlabel{sub:Transition}{{5.2}{17}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Abstract syntax tree data types of expressions}}{18}}
+\newlabel{fig:js-expr}{{9}{18}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Parts of Evaluation Transition Rules}}{20}}
+\newlabel{fig:eval}{{10}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Parts of Continuation Transition Rules for Statements}}{21}}
+\newlabel{fig:cont-stmt}{{11}{21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Parts of Continuation Transition Rules for Expressions}}{22}}
+\newlabel{fig:cont-expr}{{12}{22}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Parts of Application Transition Rules for Statements}}{23}}
+\newlabel{fig:app-stmt}{{13}{23}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Parts of Application Transition Rules for Portions of Expressions}}{24}}
+\newlabel{fig:app-expr}{{14}{24}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Store and Stack}{25}}
+\newlabel{sub:Store and Stack}{{5.3}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Functions, Methods, and Constructors}{25}}
+\newlabel{sub:Functions, Methods, and Constructors}{{5.4}{25}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Application Transition Rule for Global Function Calls}}{26}}
+\newlabel{fig:app-call}{{15}{26}}
+\citation{shivers1991control}
+\citation{agesen1995cartesian}
+\citation{smaragdakis2011pick}
+\citation{lhotak2003scaling}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Configureable Context-Sensitivity and Adaptive Object-Sensitivity}{27}}
+\newlabel{sub:Configureable}{{5.5}{27}}
+\citation{earl2012introspective}
+\citation{might2006improving}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Abstract Garbage Collection as Stack Filtering}{28}}
+\newlabel{sub:filtering}{{5.6}{28}}
+\citation{sridharan2012correlation}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Pushdown CFA without Program Execution History}{29}}
+\newlabel{sub:pushdown-jscfa}{{5.7}{29}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.1}Intermediate Representation of JsCFA}{29}}
+\newlabel{subs:Intermediate Representation of JsCFA}{{5.7.1}{29}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.2}The Essence of \textit  {h}-CFA}{30}}
+\newlabel{subs:ehcfa}{{5.7.2}{30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.3}Abstract Garbage Collection as Popping Call Stack Frames}{31}}
+\newlabel{subs:stack-gc}{{5.7.3}{31}}
+\bibstyle{plain}
+\bibdata{Thesis}
+\bibcite{agesen1995cartesian}{1}
+\bibcite{cousot1977abstract}{2}
+\bibcite{earl2010pushdown}{3}
+\bibcite{earl2012introspective}{4}
+\bibcite{felleisen1987calculus}{5}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Future Work}{32}}
+\newlabel{sec:Future Work}{{6}{32}}
+\bibcite{flanagan1993essence}{6}
+\bibcite{gilray2016pushdown}{7}
+\bibcite{johnson2015abstracting}{8}
+\bibcite{lhotak2003scaling}{9}
+\bibcite{midtgaard2012control}{10}
+\bibcite{might2006improving}{11}
+\bibcite{sunspider}{12}
+\bibcite{shivers1991control}{13}
+\bibcite{smaragdakis2011pick}{14}
+\bibcite{sridharan2012correlation}{15}
+\bibcite{van2010abstracting}{16}
+\bibcite{vardoulakis2010cfa2}{17}

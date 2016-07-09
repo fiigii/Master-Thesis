@@ -62,11 +62,11 @@ which we exploited in the development of a static analyzer for JavaScript withou
 Dynamic programming languages, such as JavaScript, Python, and Ruby, play a significant role in computing areas, such as system management, web development, and scientific computing.
 Particularly, over the past decade, JavaScript has become a ubiquitous computing environment.
 However, certain features of JavaScript (e.g.\ duck-typing, first-class function, and highly dynamic object model) make error detection difficult.
-To this end, control flow analysis %TODO: cite
+To this end, control flow analysis~\cite{midtgaard2012control}
  (CFA) has become a viable approach to detect deep semantic defects before actual running of programs written in dynamic languages.
 CFA is a class of algorithms that try to give conservative answers to inter-procedural information of programs before actual running.
-Particularly, programs written in high-order (functional) languages are hard to statically detect precise target of a function call.
-To illustrate, there is a small example in Scheme. %TODO: cite
+Particularly, programs written in higher-order (functional) languages are hard to statically detect precise target of a function call.
+To illustrate, there is a small example in Scheme.
 \lstset{language=Lisp,
 mathescape,
 keywords={let,lambda}}
@@ -78,9 +78,10 @@ keywords={let,lambda}}
 \end{lstlisting}
 In the body of function \verb|f|, the call site \verb|(x 1)| will transfer control flow to function bodies that variable \verb|x| potentially refers to.
 However, following control flows are not obvious because \verb|x| is the formal parameter of function \verb|f| and going to binding with unknown values.
-XXX invented \textit{k}-CFA %TODO: cite
+Olin Shivers invented \textit{k}-CFA~\cite{shivers1991control}
 as the first popular solution to the control flow problem.
-\textit{k}-CFA applies an abstract interpretation approach to simulate programs running statically, and provides conservative over-approximations with configurable hierarchy of precision.
+\textit{k}-CFA applies an abstract interpretation~\cite{cousot1977abstract}
+ approach to simulate programs running statically, and provides conservative over-approximations with configurable hierarchy of precision.
 
 \subsection{Problems of CFA}
 \label{sub:Problems of CFA}
@@ -115,14 +116,14 @@ Meanwhile, the performance is unacceptable even when $k = 1$.
 
 \subsection{Pushdown CFA Algorithms}
 The core idea of pushdown CFA is to mimic function call/return as a unbounded call stack for ordinary calls and summarizing call stacks for recursive calls because unbounded call stack is uncomputable in static analysis.
-CFA2 %% TODO: citation
+CFA2~\cite{vardoulakis2010cfa2}
 implements the summarization with a tabulate algorithm, %% TODO: right name and citation?
-and PDCFA %% TODO: citation
+and PDCFA~\cite{earl2010pushdown}
 annotates state transition edges with stack actions (push, pop, and no action).
 Both of CFA2 and PDCFA introduce extra semantics for the target language, which makes the abstract interpreter hard to implement.
-Fortunately, XXX %% TODO: who?
-invented Abstracting Abstract Machine (AAM) %% TODO: citation
-as a configurable framework for constructing abstract interpreters in the CESK abstract machine style. %% TODO: citation
+Fortunately, David Van Horn and Matthew Might
+invented Abstracting Abstract Machine (AAM)~\cite{van2010abstracting}
+as a configurable framework for constructing abstract interpreters in the CESK abstract machine~\cite{felleisen1987calculus} style.
 Science AAM not only allocates values in the store (like the original \textit{k}-CFA does), but also represents control flow as store-allocated continuations.
 In AAM, each CESK state does not directly carry any continuation, but a continuation address that refers to a set of continuations in the store.
 Merging several continuations in one continuation address achieves the effect of approximating control flows.
@@ -132,7 +133,7 @@ the store size is fixed.
 Hence, the number of machine states that abstract interpreters generate is always finite.
 On the other hand, store-allocated continuation separates the original context-sensitivity (polyvariant values) strategies from
 the call/return matching techniques.
-AAC (Abstracting Abstract Control) and P4F (pushdown control flow analysis for free), %% TODO: citation
+AAC (Abstracting Abstract Control~\cite{johnson2015abstracting}) and P4F (pushdown control flow analysis for free~\cite{gilray2016pushdown}),
 both based on AAM, convert call/return matching problem to continuation-address allocation strategy.
 However, AAC incurs high overhead in theory, $O(n^9)$, and perform slow convergence in practice. %% TODO: citation
 P4F takes better time complexity in polyvariant analysis, but it just offers limited call/return matching strength and is not useful for monovariant analysis.
@@ -249,14 +250,14 @@ Consequently, when we design JsCFA, we try to do our best to provide control flo
 First of all, \textit{h}-CFA is applied in JsCFA to perfectly match call/return flows by an indirect approach, which avoids recording the program execution history along abstract interpretation and ANF transformation before analysis.
 Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
 Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
-JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit. %TODO: cite
+JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit~\cite{sunspider}.
 
 \subsection{Contributions}
 \label{sub:Contributions}
 
 \section{Pushdown CFA in AAM}
 \label{sec:PushdownAAM}
-There are already certain pushdown CFA techniques exiting in abstracting abstract machine %TODO: cite
+There are already certain pushdown CFA techniques exiting in abstracting abstract machine~\cite{van2010abstracting}
 framework.
 The AAM methodology considerably simplifies implementation of abstract interpreters via introducing store-allocated values and continuations.
 Meanwhile, the soundness of AAM is easily acquired.
@@ -265,7 +266,7 @@ In this section we will review abstract interpretation in AAM concepts to help r
 
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
-We will be describing pushdown CFA algorithms on ANF style lambda calculus.
+We will be describing pushdown CFA algorithms on ANF (Administrative Normal Form~\cite{flanagan1993essence}) style lambda calculus.
 \[
 \tag{expressions}
 \begin{aligned}
@@ -519,7 +520,7 @@ This complexity bound is still obviously exponential.
 Consequently, AAM implementations usually adopt widening on stores.
 Store widening uses a global store (single-threaded store, Shivers []) rather than per-state stores for values and continuations respectively.
 Global-store widening reduces the number of combinations of possible bindings in a store to $O(n^2)$,
-which is proved by XXX %TODO: cite
+which is proved by David Van Horn and Matthew Might~\cite{van2010abstracting}.
 \[
 O(
 (\overbrace{n}^{|Exp|} + \overbrace{n}^{|\widetilde{Env}|} +  \overbrace{n}^{|\widetilde{KAddr}|}) \times (\overbrace{n^2}^{|\widetilde{Store}|} + \overbrace{n^2}^{|\widetilde{KStore}|})
@@ -840,8 +841,8 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 JavaScript has become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
 In traditional software engineering area, static analysis have become an effective technology to help human to detect deep semantic errors and defects, but the state-of-art in JavaScript static analysis is still not a patch on static languages such as C/C++ and Java.
 
-One of the most critical reason that causes the lag is that JavaScript is a high-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of other  functions.
-In static analysis for high-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site.
+One of the most critical reason that causes the lag is that JavaScript is a higher-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of other  functions.
+In static analysis for higher-order programming languages, control flow analysis often play a significant role because usually we cannot determine which functions are exactly called in a specific call site.
 Simultaneously, JavaScript heavily relies on first-class functions to implement certain high-level semantics, such as methods, block scoping, and module import/export, etc.
 Consequently, we developed JsCFA, a abstract interpreter for a subset of JavaScript (ECMAScript 3) based on \textit{h}-CFA computes more precise control flow analysis.
 Although JsCFA works out almost monovariant, context-insensitive analysis results, AAM allows users to obtained context-sensitivity easily.
@@ -1441,7 +1442,7 @@ In JsCFA, we implement the ``return the generated object'' by a trick, which put
 \label{sub:Configureable}
 Context sensitivity is an effective approach to impact precision and performance of static analysis.
 Different context choices yield different analysis results and performance.
-On the one hand, each kind of context sensitivity strategy (call-site sensitive, argument sensitive, object sensitive, field sensitive, etc.) just contributes considerable precision influence on specific analysis problems.
+On the one hand, each kind of context sensitivity strategy (call-site sensitive~\cite{shivers1991control}, argument sensitive~\cite{agesen1995cartesian}, object sensitive~\cite{smaragdakis2011pick}, field sensitive~\cite{lhotak2003scaling}, etc.) just contributes considerable precision influence on specific analysis problems.
 On the other hand, certain contexts can select different precision levels with different performance costs, such as call-site sensitivity in \textit{k}-CFA\@.
 One of the most crucial contributions of AAM is that makes context sensitivity configureable.
 Contexts of polyvariant values are only determined by $\widetilde{alloc}$ and data type of $\widetilde{Addr}$. %cite
@@ -1476,7 +1477,7 @@ Traditional \textit{k}-CFA attempts to resolve this problem via introducing cont
 The essential reason why different actual parameters merge into same formal parameters is monovariant abstract interpreters breaking the concrete semantics. Concrete interpreters never merge parameters from different call sites because local variables will be deleted when the interpreter exits from the function.
 Consequently, CFA2 invents an approach named ``stack filtering'' making it more useful, which just returns \verb|#t| to variable \verb|b|. Stack filtering simulates the semantics of popping call stack frames to remove useless values of local variables. However, there are two limitations that lead stack filtering not being able to port to AAM\@. On the one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. On the other hand, we cannot always pop call stack frames after function returns because Section~\ref{sub:Polyvariant Continuation} mentions that continuation stores may become graphs that contain cycles rather than stacks.
 
-Introspective pushdown control flow analysis described by XXX integrates abstract garbage collection ($\Gamma$-CFA) in PDCFA to implement the stack filtering. JsCFA also adopts this strategy to improve analysis precision and make call/return match more useful. The semantics of abstract garbage collection is same with its counterparts in concrete interpreters/runtimes.
+Introspective pushdown control flow analysis~\cite{earl2012introspective} described by Christopher Earl, Ilya Sergey, Matthew Might, and David Van Horn integrates abstract garbage collection~\cite{might2006improving} in PDCFA to implement the stack filtering. JsCFA also adopts this strategy to improve analysis precision and make call/return match more useful. The semantics of abstract garbage collection is same with its counterparts in concrete interpreters/runtimes.
 We first scan current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' caught variables. Every address reached in last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by addresses that do not appear in mark set are regarded as garbage.
 
 However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically takes experiential complexity, in practice its performance much better than global store without abstract GC\@.
@@ -1491,7 +1492,7 @@ copy: Memory \times State \to Memory
 \label{subs:Intermediate Representation of JsCFA}
 
 \textit{h}-CFA is an effective and easily implemented method to acquire call/return perfect match in monovariant analysis on ANF style programs. However, ANF transformation limits precision improvement of highly dynamic language analysis, especially JavaScript.
-Although theoretical static analysis techniques already obtains acceptable consequence for high-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language that has no native ``inheritance'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
+Although theoretical static analysis techniques already obtains acceptable consequence for higher-order programming languages, it is still not enough for realistic dynamic languages. For example, because JavaScript is a prototype-type based language that has no native ``inheritance'' semantics, programmers usually implement their own ``inherit'' or ``extend'' functions to simulate object-oriented inheritance.
 \lstset{mathescape,
 keywords={function, for, in, if, return, var}}
 \begin{lstlisting}
@@ -1509,7 +1510,7 @@ Then all of the first-level properties of object \verb|source| are copied into \
 Consider monovariant analysis on function \verb|extend|, all property names (strings) of \verb|source| flows into \verb|propName| and merges to a ``veriable string'' (top value of string in JsCFA), and object \verb|target| also becomes a top value of object that does not contribute any benefit to following analysis process.
 Traditional monovariant analysis does not detect and fulfill the high-level semantics that copy first-level properties form one objects to others.
 Fortunately, there are already techniques that attempts to boost static analysis results for dynamic languages via recognizing high-level semantics.
-Correlation tracking %TODO: cite
+Correlation tracking~\cite{sridharan2012correlation}
 is one of these techniques that matches \emph{correlated dynamic property access} patterns that are often used to implement \verb|extend|. Then analysis precision achieves enhancement from the high-level perspective that directly ``inherit'' properties from \verb|source|.
 Therefore, we have to retain code patterns or conventions of input programs in the intermediate representations (IR) of abstract interpreters.
 This is the most significant reason why we adopt direct AST as the IR of JsCFA rather than other low-level forms, such as ANF\@.
@@ -1638,11 +1639,10 @@ Then the abstract interpreter dives into this call site, when the invocation com
 
 Therefore, control flows only can back to the return point \verb|b| through the stack $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}} \to \widetilde{a_k{}_{init}}$. Eventually, JsCFA either never mismatches return flows with their corresponding call sites or directly analyze input programs without ANF transformation.
 
-\section{Related Works}
-\label{sec:Related Works}
-
 \section{Future Work}
 \label{sec:Future Work}
 
-
+\renewcommand\refname{Reference}
+\bibliographystyle{plain}
+\bibliography{Thesis}
 \end{document}
