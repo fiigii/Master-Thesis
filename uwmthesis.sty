@@ -407,7 +407,7 @@
 
 % Master's or Doctorate ?
 \newif\ifdoctorate
-\doctoratetrue 	% default master's degree, true -> doctorate
+\doctoratefalse 	% default master's degree, true -> doctorate
 
 % acknowledgments ?
 \newif\ifackspage
@@ -484,7 +484,7 @@ Metaphysics}
 
 \def\stitlep{%
 	\thispagestyle{empty}%
-	\null\vskip1in%
+	\null%\vskip1in%
 	\begin{center}
 		{\Large\bf\uppercase\expandafter{\@title}}\\
 		\rm by\\
@@ -555,7 +555,7 @@ Metaphysics}
 \vskip.5in \vskip 1em \profsignature \vskip 4em \gradschapprov \vskip 0.5in \newpage
 }
 \def\abstract{%
-	\null\vskip1in%
+	\null%\vskip1in%
 	\begin{center}
 		\Large\bf \@ABSTRACT
 	\end{center}
