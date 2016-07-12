@@ -45,25 +45,28 @@
 %\degree{Master of Science}
 \begin{document}
 
-%\maketitle
+\maketitle
 %\tableofcontents
-\Abstract{
-In control flow analysis (CFA), call/return mismatch is always a problem that dramatically reduces analysis precision. Original \textit{k}-CFA uses bounded call strings to obtain limited call/return matching but it has a serious performance problem
-due to its coupling of call/return matching with context-sensitivity of values.
-Meanwhile, abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
-introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable.
-Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide call/return matching for AAM by modeling call-stack as a pushdown system.
-However, PDCFA needs significant engineering effort to implement.
-AAC incurs high overhead and is hard to understand while P4F cannot work with monovariant analysis (0-CFA).
-To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
-Our method uses AAM and is very easy to implement for ANF style program.
-Simultaneously, our method reveals an essential property of pushdown CFA,
-which we exploited in the development of a static analyzer for JavaScript,named JsCFA, without ANF transformation.
+\begin{abstract}
+  In control flow analysis (CFA), call/return mismatch is always a problem that dramatically reduces analysis precision. Original \textit{k}-CFA uses bounded call strings to obtain limited call/return matching but it has a serious performance problem
+  due to its coupling of call/return matching with context-sensitivity of values.
+  Meanwhile, abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
+  introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable.
+  Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide call/return matching for AAM by modeling call-stack as a pushdown system.
+  However, PDCFA needs significant engineering effort to implement.
+  AAC incurs high overhead and is hard to understand while P4F cannot work with monovariant analysis (0-CFA).
+  To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
+  Our method uses AAM and is very easy to implement for ANF style program.
+  Simultaneously, our method reveals an essential property of pushdown CFA,
+  which we exploited in the development of a static analyzer for JavaScript,named JsCFA, without ANF transformation.
 
-Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
-Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
-JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit~\cite{sunspider}.
-}
+  Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
+  Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
+  JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit~\cite{sunspider}.
+\end{abstract}
+%\Abstract{
+
+%}
 
 %\beforepreface
 %\prefacesection{Preface}
