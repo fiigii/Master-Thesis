@@ -50,15 +50,19 @@
 \Abstract{
 In control flow analysis (CFA), call/return mismatch is always a problem that dramatically reduces analysis precision. Original \textit{k}-CFA uses bounded call strings to obtain limited call/return matching but it has a serious performance problem
 due to its coupling of call/return matching with context-sensitivity of values.
-Meanwhile, Abstracting Abstract Machine (AAM), a configurable framework for constructing abstract interpreters,
+Meanwhile, abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
 introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable.
 Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide call/return matching for AAM by modeling call-stack as a pushdown system.
-However, PDCFA needs extra annotated edges to represent stack actions that leads to implementation difficulty.
-AAC incurs high overhead while P4F cannot work with monovariant analysis (0-CFA).
+However, PDCFA needs significant engineering effort to implement.
+AAC incurs high overhead and is hard to understand while P4F cannot work with monovariant analysis (0-CFA).
 To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
 Our method uses AAM and is very easy to implement for ANF style program.
 Simultaneously, our method reveals an essential property of pushdown CFA,
 which we exploited in the development of a static analyzer for JavaScript,named JsCFA, without ANF transformation.
+
+Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
+Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
+JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit~\cite{sunspider}.
 }
 
 %\beforepreface
@@ -159,7 +163,7 @@ the call/return matching techniques.
 Additionally, static analyzer implementing in AAM style is as easy as writing concrete interpreters.
 AAC (Abstracting Abstract Control~\cite{johnson2015abstracting}) and P4F (pushdown control flow analysis for free~\cite{gilray2016pushdown})
 are both pushdown CFA techniques based on AAM\@, which convert the call/return matching problem to continuation-address allocation strategy.
-In other words, AAC and P4F just modify the $widetilde{kalloc}$ function of AAM to acquire call/return matching.
+In other words, AAC and P4F just modify the $\widetilde{kalloc}$ function of AAM to acquire call/return matching.
 However, AAC incurs high overhead in theory, $O(n^9)$, and perform slow convergence in practice. %% TODO: citation
 P4F takes better performance in polyvariant analysis, but it just offers limited call/return matching strength and is not useful for monovariant analysis.
 
@@ -177,7 +181,7 @@ for finding the fixed-point of recursive computation.
 %Furthermore, we claim that for call/return matching (polyvariant continuations), finite length of \textit{k} is enough,
 %which reaches N (size of input program) in the worst case.
 
-To illustrate the difference between P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
+To illustrate the call/return matching strength of P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
 implemented them for Scheme language. We ran the four algorithms on on a small program shown in Figure~\ref{fig:fib} and
 the resulting state-transition graphs are shown in Figure~\ref{fig:state-graphs}.
 
@@ -230,7 +234,7 @@ and it is used to compare the strength of call/return matching of four pushdown 
 (d) \textit{h}-CFA
 \end{tabular}
 \end{center}
-\caption{
+\caption[State transition graphs]{
 State transition graphs of: (1) P4F (pushdown CFA for free) with 1-CFA\@;
 (2) PDCFA (pushdown CFA); (3) PDCFA with abstract GC\@; (4) \textit{h}-CFA\@.
 (2--4) are run with 0-CFA\@.
@@ -263,7 +267,8 @@ PDCFA     & Infinite        & \checkmark   & \checkmark   & Difficult    & $O(n^
 AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^9)$       \\ \hline
 \textit{h}-CFA & Infinite   & \checkmark   & \checkmark   & Easy         & Exponential    \\ \hline
 \end{tabular}
-\caption{Comparison of pushdown CFA algorithms in terms of analysis precision, time complexity, and ease of implementation.}
+\caption[Comparison of pushdown CFA algorithms]
+{Comparison of pushdown CFA algorithms in terms of analysis precision, time complexity, and ease of implementation.}
 \label{fig:comparison}
 \end{figure}
 
@@ -325,11 +330,11 @@ The abstract interpreter operates over CESK machine states $\tilde{\varsigma}$.
 \]
 \[
 \tag{environments}
-\tilde{\rho} \in \widetilde{Env} \triangleq Var \rightharpoonup \widetilde{Addr}
+\tilde{\rho} \in \widetilde{Env} \triangleq Var \to \widetilde{Addr}
 \]
 \[
 \tag{stores}
-\tilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \mapsto \widetilde{Value}
+\tilde{\sigma} \in \widetilde{Store} \triangleq \widetilde{Addr} \to \widetilde{Value}
 \]
 \[
 \tag{abstract values}
@@ -341,7 +346,7 @@ The abstract interpreter operates over CESK machine states $\tilde{\varsigma}$.
 \]
 \[
 \tag{continuation stores}
-\tilde{\sigma}_k \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \mapsto  \widetilde{Kont}
+\tilde{\sigma}_k \in \widetilde{KStore} \triangleq  \widetilde{KAddr} \to  \widetilde{Kont}
 \]
 \[
 \tag{abstract continuations}
@@ -504,8 +509,8 @@ The transition relation we defined above is a monotonic function that is used by
 \State $\textit{seen} \gets \textit{initState} :: Nil$
 
 \While{$\textit{todo} \neq Nil$}
-  \State $\textit{state} \gets car(\textit{todo})$
-  \State $\textit{todo} \gets cdr(\textit{todo})$
+  \State $\textit{state} \gets head(\textit{todo})$
+  \State $\textit{todo} \gets tail(\textit{todo})$
   \State $\textit{nexts} \gets transition_{AAM}(\textit{state})$
   \For{$\textit{n} \in \textit{nexts}$}
     \If{$\textit{n} \notin \textit{seen}$}
@@ -543,7 +548,7 @@ This complexity bound is still obviously exponential.
 Consequently, AAM implementations usually adopt widening on stores.
 Store widening uses a global store (single-threaded store, Shivers~\cite{shivers1991control}) rather than per-state stores for values and continuations respectively.
 Global-store widening reduces the number of combinations of possible bindings in a store to $O(n^2)$,
-which is proved by David Van Horn and Matthew Might~\cite{van2010abstracting}.
+which is proved in~\cite{van2010abstracting, gilray2016pushdown}.
 \[
 O(
 (\overbrace{n}^{|Exp|} + \overbrace{n}^{|\widetilde{Env}|} +  \overbrace{n}^{|\widetilde{KAddr}|}) \times (\overbrace{n^2}^{|\widetilde{Store}|} + \overbrace{n^2}^{|\widetilde{KStore}|})
@@ -551,21 +556,22 @@ O(
 \]
 Eventually, the time complexity of AAM is $O(n^3)$ in monovariance.
 
-\subsection{Pushdown CFA in AAM}
-\label{sub:PDAAM}
-Although, abstracting abstract machines import store-allocated values and store-allocated continuations that make call/return matching orthogonal from context-sensitivity, original $\widetilde{alloc}$ functions (continuation address allocating strategy) cannot depend upon context information to implement limited call/return matching (like \textit{k}-CFA does). P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$ function:
+\subsection{A Defect of AAM}
+\label{sub:Defect}
+Although, AAM imports store-allocated values and store-allocated continuations that make call/return matching orthogonal from context-sensitivity, $\widetilde{alloc}$ (continuation address allocating strategy) cannot depend upon context information to implement limited call/return matching (like \textit{k}-CFA does).
+P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$:
 \[
 \widetilde{kalloc_{P4F}} ((e, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma}_k, \tilde{a}_k), e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime) = (e\textprime, \tilde{\rho}\textprime)
 \]
-In P4F, continuation addresses are represented by $(e\textprime, \tilde{\rho}\textprime)$ that the most obvious change is it packing callee function with ``target environment'' ($\tilde{\rho}\textprime$) of the current application.
-Firstly, environments ($Var \rightharpoonup \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvariant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into value's addresses.
+Continuation addresses are represented by $(e\textprime, \tilde{\rho}\textprime)$ that the most obvious change is it packing callee function with ``target environment'' ($\tilde{\rho}\textprime$) of the current application.
+Firstly, environments ($Var \to \widetilde{Addr}$) map variable names to value addresses in CESK abstract machines, and AAM encodes polyvariant strategy (e.g.\ call-site sensitive, object-sensitive, argument-sensitive, etc.) into value's addresses.
 Thus, P4F can be regarded as an adaptive pushdown control flow analysis algorithm that automatically achieves finite call/return matching support from values' polyvariant strategy. %(implementing of $\widetilde{alloc}$ function).
 Secondly, P4F also reveals a significant fact why original AAM misses call/return flow matching.
 One of the most important contributions of AAM is that separates analysis context requirements from termination of abstract interpreters.
 All things (values and continuations) allocated in the store make termination of abstract interpreters easily reached because the fixed size of stores lead finite number of abstract machine states, so any implementation of $\widetilde{alloc}$ is sound.
 However, the original $\widetilde{kalloc}$ function of AAM that mimics generating call stack frames of concrete interpreters does not acquire any benefit from values' polyvariance for getting more precise call/return flows.
 P4F fixed the problem by introducing polyvariance into continuation store, which brings context information in target environment to distinguish continuations under different contexts.
-Although P4F cannot perfect match call/return flow infinitely, it still discovers the essence of pushdown control flow analysis in AAM\@: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis results.
+Although P4F cannot infinitely match call/return flows, it still discovers the essence of pushdown control flow analysis in AAM\@: continuations also need to be polyvariant (context-sensitive) to achieve more precise static analysis results.
 
 \section{Pushdown CFA based on Program Execution History}
 \label{sec:hcfa}
@@ -586,7 +592,7 @@ Data types and notations of $CESK^H$ are defined below. We changed parts of $CES
 \]
 \[
 \tag{environments}
-\tilde{\rho} \in \widetilde{Env} \triangleq Var \rightharpoonup \widetilde{Addr}
+\tilde{\rho} \in \widetilde{Env} \triangleq Var \to \widetilde{Addr}
 \]
 \[
 \tag{stores}
@@ -614,7 +620,7 @@ Data types and notations of $CESK^H$ are defined below. We changed parts of $CES
 \]
 \[
 \tag{histories}
-\tilde{h} \in \widetilde{History} \triangleq Var \rightharpoonup \widetilde{Addr}
+\tilde{h} \in \widetilde{History} \triangleq Var \to \widetilde{Addr}
 \]
 \[
 \tag{value addresses}
@@ -715,7 +721,7 @@ $\widetilde{KAddr^H}$ in $CESK^H$ machines is encoded by: (1) the call stie $e$,
 
 \subsection{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-Let's exam the analysis process of a simple example to understand \textit{h}-CFA, the example is similar with Figure~\ref{fig:fib} but written in ANF style showed by Figure~\ref{fig:anf-fib}.
+We would like to exam the analysis process of a simple example to understand \textit{h}-CFA, the example is similar with Figure~\ref{fig:fib} but written in ANF style showed by Figure~\ref{fig:anf-fib}.
 
 \begin{figure}
 \small
@@ -800,6 +806,19 @@ Then the abstract interpreter restarts to execute the function and encounters ca
 \widetilde{a^H_k{}_5} = ((fib\ res2), \widehat{fib}, \{fib, a, res1, res2\})
 \]
 
+\subsection{Store-Widening and Complexity of \textit{h}-CFA}
+\label{sub:swh}
+Store-Widening is also employed in \textit{h}-CFA for value and continuation store both.
+However,
+\[
+O(
+(\overbrace{n}^{|Exp|} + \overbrace{n}^{|\widetilde{Env}|} + \overbrace{n^n}^{|\widetilde{History}|} + \overbrace{n^n}^{|\widetilde{KAddr}|}) \times \overbrace{n^2}^{|\widetilde{Store}|} \times \overbrace{n^2}^{|\widetilde{KStore}|}
+)
+\]
+Although the number of reachable states of $CESK^H$ machine is still exponential, in practice the performance of \textit{h}-CFA is better than AAC for most cases.
+We ran our \textit{h}-CFA implementation and AAC on test cases from Larceny R6RS benchmark suite and other examples.
+Figure~\ref{0-benchmark} compares the number of states that \textit{h}-CFA and AAC explored in monovariant analysis, and Figure~\ref{1-benchmark} shows the test with 1-call-site sensitivity.
+
 \begin{figure}
   \centering
 \minipage{0.32\textwidth}
@@ -854,11 +873,12 @@ coordinates {(mj09,28) (eta,16)
 \endminipage\hfill
 \end{figure}
 
+\iffalse
 \subsection{Defect of \textit{h}-CFA}
 \label{sub:Defect of h-CFA}
 Although \textit{h}-CFA provides precise call/return flows to monovariance and polyvariance both without extra effort, it just holds on ANF programs. Next section, we will show that certain situations and analysis strategies limit us not being able to compile input programs to ANF before analysis.
 Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \textit{k}-CFA cannot perfect match infinite call/return flows. According to this discovery, we develop another pushdown analysis technique that is friendly for direct AST and on longer requires the execution history.
-
+\fi
 \section{Design of JsCFA}
 \label{sec:JsCFA}
 JavaScript has become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these powerful characters also induce large scale software written in JavaScript to be increasingly unreliable.
