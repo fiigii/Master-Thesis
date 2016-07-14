@@ -177,16 +177,19 @@ Finally, we list serval potential approaches for improving \textit{h}-CFA and Js
 
 \section{Related Work}
 \label{sec:Related}
-In order to address the imprecision problem of original \textit{k}-CFA, many techniques are introduced from different perspectives.
-On the one hand, certain theories tend to find better contexts for context-sensitive (polyvariant) analysis.
-For example, call-site sensitivity~\cite{shivers1991control}, argument sensitivity~\cite{agesen1995cartesian}, object sensitivity~\cite{milanova2005parameterized, smaragdakis2011pick}, and field sensitivity~\cite{lhotak2003scaling} contribute different benefits to precision or performance for different situations.
-On the other hand, several techniques attempt to improve both monovariant and polyvariant in other ways.
+In order to address the precision problem of original \textit{k}-CFA, many techniques are introduced from different perspectives.
+Some algorithms tend to find better contexts for context-sensitive (polyvariant) analysis.
+For example, call-site sensitivity~\cite{shivers1991control}, argument sensitivity~\cite{agesen1995cartesian}, object sensitivity~\cite{milanova2005parameterized,smaragdakis2011pick}, and field sensitivity~\cite{lhotak2003scaling} contribute different benefits to precision or performance for different situations.
+Other techniques attempt to improve both monovariant and polyvariant in alternative ways.
 One of the most popular method of this group is pushdown approach (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation. %TODO: cite for pds
-Original \textit{k}-CFA algorithm regards programs as finite-state automates that limits the number of program states to be finite, so the abstract interpreter is guaranteed to be able to terminate.
-However, this abstraction violates a basic semantics of programming languages, which most non-local flow controllers (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate \emph{recursive} control flows.
-Because finite-state automata cannot accept recursive structures, so introducing pushdown system becomes necessary for boosting CFAs.
+Original \textit{k}-CFA algorithm models each program as a finite-state automaton 
+so that the abstract interpreter is guaranteed to terminate.
+\textit{k}-CFA's abstraction merges the information of call stacks containing more than $k$ frames.
+However, this abstraction violates the basic semantics of programming languages, where many constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate \emph{recursive} control flows.
+Since finite-state automata cannot accept recursive structures, pushdown system is a better choice for implementing CFAs.
 Our first contribution of this paper is a new method of pushdown CFA algorithm, referred to as \textit{h}-CFA, that provides perfect call/return matching.
-Before describing our technique, we want to briefly discuss existing algorithms in the pushdown CFA area and preliminary knowledge of \textit{h}-CFA\@.
+Before describing our technique, we discuss the existing algorithms for the pushdown CFA and 
+preliminary knowledge of \textit{h}-CFA\@.
 
 \paragraph{Pushdown CFA Algorithms}
 The core idea of pushdown CFA is to mimic function call/return as a unbounded call stack for ordinary calls and summarizing call stacks to finite height for recursive calls because unbounded call stack is imcomputable in static analysis.
