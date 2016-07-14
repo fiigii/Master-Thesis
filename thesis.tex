@@ -12,7 +12,7 @@
 \usepackage{courier}
 \usepackage{tikz}
 \usepackage{pgfplots}
-\pgfplotsset{width=7cm,compat=newest}
+\pgfplotsset{width=6cm,compat=newest}
 
 % "define" Scala
 \lstdefinelanguage{scala}{
@@ -184,13 +184,13 @@ Other techniques attempt to improve both monovariant and polyvariant in alternat
 One of the most popular method of this group is pushdown-based CFA (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation. %TODO: cite for pds
 Original \textit{k}-CFA algorithm abstracts each program as a finite-state machine
 so that the abstract interpreter is guaranteed to terminate.
-The abstraction of \textit{k}-CFA is only precise for programs with bounded call stacks. 
-However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate 
+The abstraction of \textit{k}-CFA is only precise for programs with bounded call stacks.
+However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate
 \emph{recursive} control flows.
-Since the abstraction of {\em k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice. 
-The first contribution of this paper is a new method for implementing pushdown-based CFA, referred to as \textit{h}-CFA, 
+Since the abstraction of {\em k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice.
+The first contribution of this paper is a new method for implementing pushdown-based CFA, referred to as \textit{h}-CFA,
 that provides perfect call/return matching.
-Before describing our technique, we discuss the existing algorithms for the pushdown CFA and 
+Before describing our technique, we discuss the existing algorithms for the pushdown CFA and
 preliminary knowledge of \textit{h}-CFA\@.
 
 \paragraph{Pushdown CFA Algorithms}
@@ -221,11 +221,6 @@ are both pushdown CFA techniques based on AAM\@, which convert the call/return m
 In other words, AAC and P4F just modify the $\widetilde{kalloc}$ function of AAM to acquire call/return matching.
 However, AAC incurs high overhead in theory, $O(n^9)$, and perform slow convergence in practice. %% TODO: citation
 P4F takes better performance in polyvariant analysis, but it just offers limited call/return matching strength and is not useful for monovariant analysis.
-
-%\subsection{A New Method of Pushdown CFA}
-%\label{sub:A New Method of Pushdown CFA}
-
-
 
 \iffalse
 \subsection{Static Analysis for JavaScript}
@@ -804,16 +799,18 @@ However, in realistic analyzers, functional data structures usually incurs consi
 
 \begin{figure}
   \centering
-\minipage{0.32\textwidth}
+\minipage{0.48\textwidth}
 \begin{tikzpicture}
+  \small
 \begin{axis}[
 	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
   xtick=data,
 	ylabel=States,
 	enlargelimits=0.05,
-	legend style={at={(0.5,-0.1)},
+	legend style={at={(0.5,-0.33)},
 	anchor=north,legend columns=-1},
 	ybar interval=0.6,
+  x tick label style={rotate=90},
 ]
 \addplot
 	coordinates {(mj09,54) (eta,55)
@@ -829,16 +826,18 @@ coordinates {(mj09,37) (eta,22)
 \caption{monovariant analysis comparison}
 \label{0-benchmark}
 \endminipage\hfill
-\minipage{0.32\textwidth}
+\minipage{0.48\textwidth}
 \begin{tikzpicture}
+  \small
 \begin{axis}[
 	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
   xtick=data,
 	ylabel=States,
 	enlargelimits=0.05,
-	legend style={at={(0.5,-0.1)},
+	legend style={at={(0.5,-0.33)},
 	anchor=north,legend columns=-1},
 	ybar interval=0.7,
+  x tick label style={rotate=90},
 ]
 \addplot
 	coordinates {(mj09,94) (eta,39)
@@ -882,15 +881,14 @@ and it is used to compare the strength of call/return matching of four pushdown 
 \fi
 
 \begin{figure}
-\small
 \begin{center}
 \begin{tabular}{ccc}
 %\raisebox{1ex-\height}{
-\includegraphics[height=2in]{1p4f.pdf}
+\includegraphics[height=2.5in]{1p4f.pdf}
 %}
 &
 %\raisebox{1ex-\height}{
-\includegraphics[height=2in]{pdcfaWOgc.pdf}
+\includegraphics[height=2.5in]{pdcfaWOgc.pdf}
 %}
 \\
 (a) P4F with 1-CFA
@@ -898,14 +896,14 @@ and it is used to compare the strength of call/return matching of four pushdown 
 (b) PDCFA
 \\
 %\raisebox{1ex-\height}{
-\includegraphics[height=2in]{pdcfa.pdf}
+\includegraphics[height=2.5in]{pdcfa.pdf}
 %}
 &
 %\raisebox{1ex-\height}{
-\includegraphics[height=2in]{hcfa.pdf}
+\includegraphics[height=2.5in]{hcfa.pdf}
 %}
 \\
-(c) PDCFA with Abstract Garbage Collection
+(c) PDCFA with \\Abstract Garbage Collection
 &
 (d) \textit{h}-CFA
 \end{tabular}
@@ -1052,7 +1050,7 @@ Consequently, we partition continuations in two places that make semantics clear
 
 JsCFA distinguishes three types of transition states: evaluation, continuation, and application.
 
-\paragraph{Evaluation transition}rules accept a state and match its control string component to generate successors. Evaluation transitions firstly search values and reducible expressions/statements (we refer states carry reducible expressions/statements to complete states in JsCFA) in the control strings.
+\textbf{Evaluation transition} rules accept a state and match its control string component to generate successors. Evaluation transitions firstly search values and reducible expressions/statements (we refer states carry reducible expressions/statements to complete states in JsCFA) in the control strings.
 If the control string is a value (instance of class \verb|JSValue|), analysis would be dispatched to a continuation transition that depends upon  the following control flow step retrieved from the top of local stack. Then the continuation transition determines how to use the value.
 If the current state is a complete state that its every recursive component is already computed to a value, the abstract machine transits to application to execute main semantics of the AST node.
 Eventually, when the control string is neither value nor reducible expression/statement, the machine generates the new continuation according to semantics of standard JavaScript.
@@ -1066,7 +1064,8 @@ Therefore, we have to implement ``return'' semantics at this point too while the
 \begin{lstlisting}
   def transitEvaluation(state: State): Set[State] = state match {
     case completeState if isComplete(completeState) =>
-        transitApplication(state) //dispatch to application transition
+        transitApplication(state)
+        //dispatch to application transition
     case State(v, env, localStack, a, memory) if isJSValue(v) =>
         if (localStack.nonEmpty) {
           val cont = topOfLocalStack(localStack)
@@ -1124,7 +1123,7 @@ Therefore, we have to implement ``return'' semantics at this point too while the
 \label{fig:eval}
 \end{figure}
 
-\paragraph{Continuation transitions}work on the six components that state objects have and an extra \emph{next continuation} (referred to as \verb|cont| in Figure~\ref{fig:cont-stmt} and Figure~\ref{fig:cont-expr}).
+\textbf{Continuation transitions} work on the six components that state objects have and an extra \emph{next continuation} (referred to as \verb|cont| in Figure~\ref{fig:cont-stmt} and Figure~\ref{fig:cont-expr}).
 Control strings in these transition states are alway values, so abstract machines dispatch transitions via matching \verb|cont| and plug the value into a new continuation.
 If the new continuation object is a reducible expression/statement, the next machine states will move to application transitions.
 Under this situation, the new continuation object is a \emph{complete} expression/statement that will be placed on control string position of next state.
@@ -1217,7 +1216,7 @@ Then, the following computing will be dispatched by next evaluation states.
 \label{fig:cont-expr}
 \end{figure}
 
-\paragraph{Application transitions}just accept complete states to generate subsequent states. Function \verb|isComplete| exams whether the passed-in state is complete by matching its control string.
+\textbf{Application transitions} just accept complete states to generate subsequent states. Function \verb|isComplete| exams whether the passed-in state is complete by matching its control string.
 Complete control strings represent the expressions/statements always reducible.
 They are either AST nodes direct from the parser or continuation objects generated by continuation transitions. These application transitions described in Figure~\ref{fig:app-stmt} and Figure~\ref{fig:app-expr} implement all the reduction rules of JavaScript.
 
@@ -1231,13 +1230,15 @@ def transitApplication(state: State): Set[State] = state match {
         Frame(returnPoint, oldStack, savedEnv, newGlobalAddress)
             <- newMemory.getFrames(a) //get the stack frame
       } yield {
-        if(oldStack.isEmpty || !oldStack.head.isInstanceOf[KUseValue]) {
+        if(oldStack.isEmpty ||
+          !oldStack.head.isInstanceOf[KUseValue]) {
           //if current function called by "new", return "this" object
           for(vs <- newMemory.getValues(v)) {
             newMemory.putValue(returnPoint, vs)
           }
         }
-        State(returnPoint, savedEnv, oldStack, newGlobalAddress, newMemory)
+        State(returnPoint, savedEnv,
+              oldStack, newGlobalAddress, newMemory)
       }
 
   case State(KIfComplete(cond, t, e), env, localStack, a, memory) =>
@@ -1315,7 +1316,7 @@ def transitApplication(state: State): Set[State] = state match {
 \label{fig:app-expr}
 \end{figure}
 
-Once the abstract interpreter of JsCFA launches, the parser reads input program and convert it to a AST warped as a \verb|Script| object at top level.
+Once the abstract interpreter of JsCFA launches, the parser reads input program and convert it to an AST warped as a \verb|Script| object at top level.
 Then \verb|inject| takes the AST to generate initial machine state that contains all JavaScript built-in variables, objects, and functions into $\widetilde{initEnv}$ and $\widetilde{initMemory}$. Then worklist algorithm starts evaluation transition on the initial state.
 \[
 inject_{JsCFA} : AbstractSyntaxTree \to State
@@ -1498,9 +1499,12 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
             f.asInstanceOf[JSObject].code
             //get closures from the function object
     } yield {
-        val psAddress = ps.map(alloc(_)) //allocate addresses for formal parameters
-        val thisAddress = biGlobalObjectRef // address of global object
-        var newEnvPart = ("this" -> thisAddress) :: ps.map(x => x.str).zip(psAddress)
+        val psAddress = ps.map(alloc(_))
+        //allocate addresses for formal parameters
+        val thisAddress = biGlobalObjectRef
+        // address of global object
+        var newEnvPart =
+          ("this" -> thisAddress) :: ps.map(x => x.str).zip(psAddress)
           //extend environment with "this" and other parameters
         name match {
           case Some(x) => newEnvPart = (x.str -> alloc(x)) :: newEnvPart
@@ -1519,7 +1523,7 @@ case State(KFuncCallComplete(funcRef, args), env, localStack, a, memory) =>
         val nextAddress = allocStackAddress(state, funcBody, newEnv)
           //allocate the stack frame
         newMemory.pushFrame(nextAddress,
-                                  Frame(alloc(state.e), localStack, env, a))
+                            Frame(alloc(state.e), localStack, env, a))
         State(funcBody, newEnv, emptyLocalStack, nextAddress, newMemory)
     }
 
@@ -1568,7 +1572,7 @@ Thus, we apply object sensitive allocation for the dynamic object extension.
 \[
 \widetilde{alloc}^{o}_{JsCFA}(expression, object) = JSReference(expression.id, object.id)
 \]
-This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc^{o}_{JsCFA}}$ for adding fields, and other situations maintain context insensitive.
+This object sensitive allocation function separates dynamically added fields to different dimension for each object. Only application transition rules of \verb|LDot| and \verb|LBracket| use $\widetilde{alloc}^{o}_{JsCFA}$ for adding fields, and other situations maintain context insensitive.
 Ultimately, JsCFA achieves more precise analysis over dynamic objects, but no heavy overhead imported.
 
 \subsection{Abstract Garbage Collection as Stack Filtering}
