@@ -59,11 +59,21 @@
   To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
   Our method uses AAM and is very easy to implement for ANF style program.
 
+<<<<<<< HEAD
   Simultaneously, our method reveals an essential property of pushdown CFA,
   which we exploited in the development of a static analyzer for JavaScript,named JsCFA, without ANF transformation.
   Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
   Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
   JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA.
+=======
+  In addition, our method reveals an essential property of pushdown CFA,
+  which we exploited in the development of a static analyzer for JavaScript, named JsCFA, without ANF transformation.
+  JsCFA adopts a technique similar to the stack filtering of CFA2 to eliminate more defects of monovariant analysis. 
+  This, in cooperation with exact call/return matching, yield more precise analysis and better performance.
+  Moreover, JsCFA supports a configurable interface to add context-sensitivity to selected areas of programs.
+  JsCFA applies the interface to improve the analysis precision for runtime object extensions. 
+  Finally, we quantitatively evaluated the performance of JsCFA.% via SunSpider benchmark suit~\cite{sunspider}.
+>>>>>>> 9e846f23ace2f358293073ff55e04cd5a1725fc5
 \end{abstract}
 %\Abstract{
 
