@@ -181,25 +181,26 @@ In order to address the precision problem of original \textit{k}-CFA, many techn
 Some algorithms tend to find better contexts for context-sensitive (polyvariant) analysis.
 For example, call-site sensitivity~\cite{shivers1991control}, argument sensitivity~\cite{agesen1995cartesian}, object sensitivity~\cite{milanova2005parameterized,smaragdakis2011pick}, and field sensitivity~\cite{lhotak2003scaling} contribute different benefits to precision or performance for different situations.
 Other techniques attempt to improve both monovariant and polyvariant in alternative ways.
-One of the most popular method of this group is pushdown approach (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation. %TODO: cite for pds
-Original \textit{k}-CFA algorithm models each program as a finite-state automaton 
+One of the most popular method of this group is pushdown-based CFA (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation. %TODO: cite for pds
+Original \textit{k}-CFA algorithm abstracts each program as a finite-state machine
 so that the abstract interpreter is guaranteed to terminate.
-The abstraction of \textit{k}-CFA only models runtime stacks with bounded number of frames. 
+The abstraction of \textit{k}-CFA is only precise for programs with bounded call stacks. 
 However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate 
 \emph{recursive} control flows.
-Since the finite state machine of {\em k}-CFA cannot accept recursive structures, pushdown system is a better choice. 
-Our first contribution of this paper is a new method of pushdown CFA algorithm, referred to as \textit{h}-CFA, that provides perfect call/return matching.
+Since the abstraction of {\em k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice. 
+The first contribution of this paper is a new method for implementing pushdown-based CFA, referred to as \textit{h}-CFA, 
+that provides perfect call/return matching.
 Before describing our technique, we discuss the existing algorithms for the pushdown CFA and 
 preliminary knowledge of \textit{h}-CFA\@.
 
 \paragraph{Pushdown CFA Algorithms}
-The core idea of pushdown CFA is to mimic function call/return as an unbounded call stack for ordinary calls and summarizing call stacks to finite height for recursive calls because unbounded call stack is imcomputable in static analysis.
+The core idea of pushdown CFA is to mimic function call/return as an unbounded call stack for ordinary calls and summarizing call stacks to finite height for recursive calls because unbounded call stack is not computable in static analysis.
 CFA2~\cite{vardoulakis2010cfa2} is the first algorithm that employs pushdown system into CFA\@.
-CFA2 models the call stack as an implicit pushdown system, and summarizes the call stack with a tabulate algorithm for recursive functions.
+CFA2 models the call stack as an implicit pushdown system, and summarizes the call stack with a tabulation algorithm for recursive functions.
 PDCFA (pushdown control flow analysis~\cite{earl2010pushdown})
 is another strategy that approximates unbounded stack model to be computable.
-PDCFA analyzes programs in a \emph{Dyke state graph}, and tracks all of the reachable states in the graph.
-Meanwhile, edges of the Dyke state graph that connect program states are annotated with stack actions (push, pop, and no action).
+PDCFA analyzes programs in a \emph{Dyck state graph}, and tracks all of the reachable states in the graph.
+Meanwhile, edges of the Dyck state graph that connect program states are annotated with stack actions (push, pop, and no action).
 These stack actions explicitly represent a pushdown system and summarize recursive structures (cycle push or pop edges) of the graph.
 Both of CFA2 and PDCFA introduce extra semantics for target languages, which makes the abstract interpreter hard to implement.
 Fortunately, David Van Horn and Matthew Might
