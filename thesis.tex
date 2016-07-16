@@ -1323,125 +1323,6 @@ inject_{JsCFA} : AbstractSyntaxTree \to State
 inject_{JsCFA}(script) = State(script, \widetilde{initEnv}, \varnothing, \widetilde{a_k{}_{init}}, \widetilde{initMemory})
 \]
 
-\iffalse
-\subsection{Constant Propagation Lattices}
-\label{sub:Constant Propagation Lattices}
-
-The abstract machine of JsCFA decouples non-deterministic abstract semantics from details of JavaScript concrete semantics. For example, in the reduction rule of infix expressions, the semantics are mainly fulfilled by function \verb|infixFunc| that takes the infix operator, addresses of operands, and the current memory and returns a value as consequence. When we implement binary expressions of JavaScript (Firure~\ref{fig:infix}), we can just translate and abstract ECMAScript language specification to Scala code. Firure~\ref{fig:infix} shows the semantics of multiplication and addition operator that also implements constant propagation of JsCFA\@. Then the result given by function \verb|infixFunc| will be saved into the store. Simultaneously, if there are serval different constant values with same type flow into one slot of store, they would be lifted through the constant propagation lattice.
-
-\begin{tikzpicture}[node distance=1.5cm]
-\title{Constant Propagation Lattice on Numbers der VariableNumber}
-\node(top) {Variable Number ($\top$)};
-\node(3) [below of=top] {3};
-\node(2) [left of=3] {2};
-\node(1) [left of=2] {1};
-\node(4) [right of=3] {4};
-\node(etc) [right of=4] {$\dots$};
-\node(bot) [below of=3] {$\bot$};
-\draw(1)--(top);
-\draw(2)--(top);
-\draw(3)--(top);
-\draw(4)--(top);
-\draw(etc)--(top);
-\draw(1)--(bot);
-\draw(2)--(bot);
-\draw(3)--(bot);
-\draw(4)--(bot);
-\draw(etc)--(bot);
-\end{tikzpicture}
-
-\begin{tikzpicture}[node distance=1.5cm]
-\title{Constant Propagation Lattice on String}
-\node(top) {Variable String ($\top$)};
-\node(3) [below of=top] {``1''};
-\node(2) [left of=3] {``ab''};
-\node(etc) [right of=3] {$\dots$};
-\node(bot) [below of=3] {$\bot$};
-\draw(2)--(top);
-\draw(3)--(top);
-\draw(etc)--(top);
-\draw(2)--(bot);
-\draw(3)--(bot);
-\draw(etc)--(bot);
-\end{tikzpicture}
-
-\begin{tikzpicture}[node distance=1.5cm]
-\title{Constant Propagation Lattice on Boolean}
-\node(top) {Variable Boolean ($\top$)};
-\node(3) [below of=top] { };
-\node(2) [left of=3] {true};
-\node(etc) [right of=3] {false};
-\node(bot) [below of=3] {$\bot$};
-\draw(2)--(top);
-\draw(etc)--(top);
-\draw(2)--(bot);
-\draw(etc)--(bot);
-\end{tikzpicture}
-
-
-\begin{figure}
-  \lstset{language=Scala, mathescape}
-  \begin{lstlisting}
-def infixFunc(op: InfixOp, e1: JSValue, e2: JSValue, memory: Memory): JSValue =
-  op match {
-    case OpMul =>
-      val v1 = ToNumber(e1)
-      val v2 = ToNumber(e2)
-      if(v1.number == JSNaN || v2.number == JSNaN) {
-        JSNumber(JSNaN)
-      } else {
-        v1 match {
-          case JSNumber(ConstantNumber(n1)) => v2 match {
-            case JSNumber(ConstantNumber(n2)) =>
-              JSNumber(ConstantNumber(n1 * n2))
-            case JSNumber(VariableNumber) =>
-              JSNumber(VariableNumber)
-          }
-          case JSNumber(VariableNumber) =>
-            JSNumber(VariableNumber)
-        }
-      }
-
-      case OpAdd =>
-      val p1 = ToPrimitive(e1)
-      val p2 = ToPrimitive(e2)
-      if (isString(p1) || isString(p2)) {
-        val s1 = ToString(p1)
-        val s2 = ToString(p2)
-        s1 match {
-          case JSString(ConstantString(cs1)) => s2 match {
-            case JSString(ConstantString(cs2)) =>
-              JSString(ConstantString(cs1 + cs2))
-            case JSString(VariableString) =>
-              JSString(VariableString)
-          }
-          case JSString(VariableString) =>
-            JSString(VariableString)
-        }
-      } else {
-        val n1 = ToNumber(p1)
-        val n2 = ToNumber(p2)
-        n1 match {
-          case JSNumber(ConstantNumber(cn1)) => n2 match {
-            case JSNumber(ConstantNumber(cn2)) =>
-              JSNumber(ConstantNumber(cn1 + cn2))
-            case JSNumber(JSNaN) =>
-              JSNumber(JSNaN)
-            case _ => JSNumber(VariableNumber)
-          }
-          case JSNumber(JSNaN) => JSNumber(JSNaN)
-          case JSNumber(VariableNumber) => n2 match {
-            case JSNumber(JSNaN) => JSNumber(JSNaN)
-            case _ => JSNumber(VariableNumber)
-          }
-        }
-      }
-      $\dots$
-  \end{lstlisting}
-  \caption{Parts of Abstract Semantics of Infix Expressions in JavaScript}
-\label{fig:infix}
-\end{figure}
-\fi
 \subsection{Store and Stack}
 \label{sub:Store and Stack}
 
@@ -1602,7 +1483,7 @@ We first scan current state to acquire the root set and trace from the root set 
 
 However, the effect of abstract garbage collection is relatively weaken in global store because the values referred by other unexecuted paths have to stay in the store even current state cannot reach them. Therefore, XXX implemented PDCFA with abstract GC with per-state stores to achieve the whole power of abstract GC\@. Although AAM with per-state stores theoretically takes experiential complexity, in practice its performance much better than global store without abstract GC\@.
 Consequently, We also implement JsCFA with per-state stores. Moreover, there are two techniques to optimize performance of abstract GC with per-state stores. Firstly, JsCFA just copies stores on write due to only application states may change the store, so evaluation and continuation states interpreted between two application states share one store. Secondly, abstract GC running never directly deletes values even they are detected as garbage. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values) to eliminate the overhead of imperative deleting elements in stores.
-Class \verb|Memory| provides method \verb|copy| that launches GC and return a new memory instance only containing reachable elements.
+Class \verb|Memory| provides method \verb|copy| that launches GC and returns a new memory instance only containing reachable elements.
 \[
 copy: Memory \times State \to Memory
 \]
@@ -1762,7 +1643,31 @@ Therefore, control flows only can back to the return point \verb|b| through the 
 \label{sub:Performance Evaluation}
 JsCFA is written in Scala and executed with Scala 2.11.
 We test its performance in a personal computer that equips Intel Core i7 (2.3 GHz), 16GB RAM with OSX operating system.
-This performance evaluation execute on SunSpider benchmark suit~\cite{sunspider}, and the result is shown in Figure~\ref{}.
+This performance evaluation execute on SunSpider benchmark suit~\cite{sunspider}, and the result is shown in Figure~\ref{jscfa-benchmark}.
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \pgfplotsset{width=8cm,compat=newest}
+    \small
+  \begin{axis}[
+  	symbolic x coords={3d-morph,access-binary-trees,access-fannkuch,access-nbody,access-nsieve,controlflow-recursive,crypto-md5,crypto-sha1,string-fasta, math-spectral-norm,math-partial-sums,empty},
+    xtick=data,
+  	ylabel=Millisecond,
+  	enlargelimits=0.05,
+  	legend style={at={(0.5,-0.33)},
+  	anchor=north,legend columns=-1},
+  	ybar interval=0.6,
+    x tick label style={rotate=90},
+  ]
+  \addplot
+  	coordinates {(3d-morph,989) (access-binary-trees,6165)
+  		 (access-fannkuch,1372) (access-nbody,17249) (access-nsieve,790) (controlflow-recursive,4861) (crypto-md5, 33435)
+       (crypto-sha1, 6138) (string-fasta, 3235) (math-spectral-norm,3808) (math-partial-sums,306) (empty,0)};
+  \end{axis}
+  \end{tikzpicture}
+  \caption{JsCFA Benchmarks}
+  \label{jscfa-benchmark}
+\end{figure}
 
 \section{Future Work}
 \label{sec:Future}
