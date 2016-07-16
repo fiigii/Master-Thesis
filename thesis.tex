@@ -1691,6 +1691,16 @@ Olivier discovered a fact in~\cite{danvy2008defunctionalized} that there is a es
 A big-step interpreter can be translated to a equivalent small-step interpreter though CPS transformation~\cite{danvy1992representing}, defunctionalization~\cite{danvy2001defunctionalization}, and fusion.
 Therefore, we will continue to design the DSL and the compiler to make abstract interpreters closer to concrete ones.
 
+\paragraph{Precision}
+Because JavaScript is a prototype-based highly dynamic programming language that heavily relies upon objects, usually pure control flow analysis is not enough for realistic JavaScript programs and libraries.
+Various previous work applies different techniques to analyze JavaScript or subsets of it, such as pointer analysis, string analysis, and numeric range analysis.
+JSAI~\cite{kashyap2014jsai} is a static analyzer for JavaScript based on AAM that uses more sophisticated models for abstract objects, abstract strings, and constant propagation.
+TAJS~\cite{jensen2009type} is another theory providing a well-designed type system to JavaScript static analysis.
+Science objects in JavaScript are maps from strings to values, so precise string analysis are benefit for dynamic extended objects.
+Then, object analysis also impacts control flow analysis because methods are fields of objects.
+Additionally, array is just a kind of special object in JavaScript, a better string/number analysis also improves analysis for arrays.
+Consequently, we plan to mix these existing techniques with our control flow analysis solution to increasingly boost JsCFA\@.
+
 \clearpage
 \bibliographystyle{plain}
 \bibliography{Thesis}
