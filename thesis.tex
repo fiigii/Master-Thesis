@@ -1580,14 +1580,16 @@ Please consider the first simple example in Section~\ref{Introduction} again, if
 Then, the merged abstract value \verb|{1, #t}| returns to variable \verb|b|.
 Meanwhile, this spurious analysis result will flow into following interpretation, and accumulated spurious values and flows will dramatically decrease precision of analysis.
 This problem will cause more critical imprecision in higher-order languages, which is referred to as environment problem~\cite{shivers1991control}.
-\lstset{language=Lisp,
-keywords={define}}
+\lstset{
+keywords={function, return}}
 \begin{lstlisting}
-(define (compose-same f x) (f (f x)))
+function compose-same(f, x) {
+  return f(f(x));
+}
 \end{lstlisting}
-In \verb|compose-same|, local variable \verb|f| is referring to closures and called twice.
+In \verb|compose-same|, local variable \verb|f| is referring to functions and called twice.
 In actual runtime, these two call sites always invoke same function.
-However 0-CFA or \textit{k}-CFA with not enough context length may compose different closures for these two call sites when \verb|compose-same| is called multiple times and serval different closures flow into \verb|f|.
+However 0-CFA or \textit{k}-CFA with not enough context length may compose different closures for these two call sites when \verb|compose-same| is called multiple times and serval different functions flow into \verb|f|.
 This spurious control flow problem (a.k.a.\ fake rebinding~\cite{vardoulakis2010cfa2}) not only yields bad analysis result, but also increases the running time of the analysis.
 Traditional \textit{k}-CFA attempts to resolve this problem via introducing context-sensitive (polyvariant) analysis.
 However, polyvariance is not an efficient and powerful solution to this problem.
@@ -1633,7 +1635,7 @@ This is the most significant reason why we adopt direct AST as the IR of JsCFA r
 However, it would introduce extra effort to record the program execution history if we port \textit{h}-CFA to cooperate with direct AST in JsCFA\@. Consequently, JsCFA adopts \textit{h}-CFA by an indirect approach that can perfect match call/return flows without program execution histories.
 
 \subsubsection{The Essence of \textit{h}-CFA}
-\label{subs:ehcfa} 
+\label{subs:ehcfa}
 Before adjust \textit{h}-CFA for JsCFA, we should discuss the most significant reason why abstract interpreters require program execution history for pushdown CFA\@. Consider the example in Figure~\ref{fig:anf-fib} again, after analyzing \verb|(a (fib 10))|, function \verb|fib| is invoked again and we have to recompute the recursive call site \verb|(fib res2)| in a new analysis environment. At this point, the continuation store $\widetilde{\sigma_k^H}$ looks like blow.
 \[
 \widetilde{a^H_k{}_{11}} = ((fib\ 10), \widehat{fib}, \{fib\})
