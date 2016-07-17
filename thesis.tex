@@ -201,7 +201,7 @@ PDCFA (pushdown control flow analysis~\cite{earl2010pushdown})
 is another strategy that approximates unbounded stack model to be computable.
 PDCFA analyzes programs in a \emph{Dyck state graph}, and tracks all of the reachable states in the graph.
 Meanwhile, edges of the Dyck state graph that connect program states are annotated with stack actions (push, pop, and no action).
-These stack actions explicitly represent a pushdown system and summarize recursive structures (cycle push or pop edges) of the graph.
+These stack actions explicitly represent a pushdown system and summarize recursive structures (cyclic push or pop edges) of the graph.
 Both of CFA2 and PDCFA introduce extra semantics for target languages, which makes the abstract interpreter hard to implement.
 Fortunately, David Van Horn and Matthew Might
 invented Abstracting Abstract Machine (AAM)~\cite{van2010abstracting}
@@ -215,12 +215,13 @@ the store size is fixed.
 Hence, the number of machine states that abstract interpreters generate is always finite.
 On the other hand, store-allocated continuation separates the original context-sensitivity (polyvariant values) strategies from
 the call/return matching techniques.
-Additionally, static analyzer implementing in AAM style is as easy as writing concrete interpreters.
+Additionally, implementing static analyzer in AAM style is as easy as writing concrete interpreters.
 AAC (Abstracting Abstract Control~\cite{johnson2015abstracting}) and P4F (pushdown control flow analysis for free~\cite{gilray2016pushdown})
 are both pushdown CFA techniques based on AAM\@, which convert the call/return matching problem to continuation-address allocation strategy.
-In other words, AAC and P4F just modify the $\widetilde{kalloc}$ function of AAM to acquire call/return matching.
-However, AAC incurs high overhead in theory, $O(n^9)$, and perform slow convergence in practice. %% TODO: citation
-P4F takes better performance in polyvariant analysis, but it just offers limited call/return matching strength and is not useful for monovariant analysis.
+In other words, AAC and P4F just modify the continuation-allocation function of AAM to acquire call/return matching.
+However, AAC has high asymptotic upper bound $O(n^9)$ and converges slowly in practice. %% TODO: citation
+P4F has better performance in polyvariant analysis but it has limited call/return matching strength 
+and is not useful for monovariant analysis.
 
 %\subsection{A New Method of Pushdown CFA}
 %\label{sub:A New Method of Pushdown CFA}
@@ -244,14 +245,15 @@ JsCFA applies the interface to resolve the imprecision of runtime extending obje
 
 \section{Pushdown CFA in AAM}
 \label{sec:PushdownAAM}
-The AAM methodology considerably simplifies implementation of abstract interpreters via introducing store-allocated values and continuations.
-Meanwhile, the soundness of AAM is easily acquired.
-Therefore, we also depend upon this theory to develop \textit{h}-CFA and our JavaScript analyzer, JsCFA\@.
-In this section we will review abstract interpretation in AAM concepts to help readers to understand our techniques.
+The AAM methodology considerably simplifies the implementation of abstract interpreters by introducing store-allocated values 
+and continuations. At the same time, the soundness of AAM is relatively easy to prove.
+Therefore, we also use this theory as the foundation to develop \textit{h}-CFA and a JavaScript analyzer, JsCFA\@.
+In this section we will review abstract interpretation in the setting of AAM to help readers to understand our techniques.
 
 \subsection{Abstracting Abstract Machine}
 \label{subs:Abstracting Abstract Machine}
-We will be describing pushdown CFA algorithms on ANF (Administrative Normal Form~\cite{flanagan1993essence}) style lambda calculus.
+In this section, we describe pushdown CFA algorithms using
+lambda calculus in the style of Administrative Normal Form (ANF)~\cite{flanagan1993essence}. 
 \[
 \tag{expressions}
 \begin{aligned}
