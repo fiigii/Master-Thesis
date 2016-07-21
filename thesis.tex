@@ -537,7 +537,7 @@ Although P4F cannot infinitely match call/return flows, it still discovers the e
 
 \chapter{Pushdown CFA based on Program Execution History}
 \label{sec:hcfa}
-Inspired by P4F, we deem that pushdown analysis (polyvariant continuation store) is orthogonal from polyvariant store. In other words, control flow analysis can achieve call/return matching without polyvariant values. 
+Inspired by P4F, we deem that pushdown analysis (polyvariant continuation store) is orthogonal from polyvariant store. In other words, control flow analysis can achieve call/return matching without polyvariant values.
 At the same time, we try to find the proper contexts for polyvariant continuations.
 
 This section describes CESK$^H$ machines that record ``program execution history'' into each abstract machine state.
@@ -686,12 +686,8 @@ $\widetilde{KAddr^H}$ in CESK$^H$ machines is encoded by: (1) the call site $e$,
 
 \section{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-<<<<<<< HEAD
-We would like to exam the analysis process of a simple example to understand \textit{h}-CFA, the example program is shown in Figure~\ref{fig:anf-fib}.
-=======
-In this section, we use a simple example in Figure~\ref{fig:anf-fib} to explain the analysis process of 
-\textit{h}-CFA. 
->>>>>>> e3ad50567adf9c482d4c660be7636115eae07800
+In this section, we use a simple example in Figure~\ref{fig:anf-fib} to explain the analysis process of
+\textit{h}-CFA.
 
 \begin{figure}
 \small
@@ -720,7 +716,7 @@ For convenient  demonstrating, we use complete Scheme language with numbers and 
 \label{fig:anf-fib}
 \end{figure}
 
-For simplicity, the execution histories are represented as variable sequences, and the called function (the second part of $\widetilde{KAddr^H}$) is replaced by its function name wearing a hat. 
+For simplicity, the execution histories are represented as variable sequences, and the called function (the second part of $\widetilde{KAddr^H}$) is replaced by its function name wearing a hat.
 This simplification improves readability without modifying the abstract semantics of CESK$^H$ machine.
 
 Through steps of the abstract interpretation, the first call site $(a\ (fib\ 10))$ carries the history $\{fib\}$,
@@ -781,7 +777,7 @@ Then the abstract interpreter restarts to execute the function and encounters ca
 
 \section{Complexity and Precision of \textit{h}-CFA}
 \label{sub:swh}
-We have applied store-widening to \textit{h}-CFA for both the value store and the continuation store. 
+We have applied store-widening to \textit{h}-CFA for both the value store and the continuation store.
 However, we have not obtained a polynomial time complexity for \textit{h}-CFA\@.
 \begin{table}[t]
 \centering
@@ -806,7 +802,7 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \end{table}
 A comparison of the related pushdown CFA algorithms with \textit{h}-CFA is shown in Figure~\ref{tab:comparison}.
 According to this table, our technique seems be worse than AAC in asymptotic upper bounds. However, in practice the performance of \textit{h}-CFA is better than AAC for most cases.
-We have run both the \textit{h}-CFA implementation and AAC on test cases from {\em Larceny R6RS} benchmark suite 
+We have run both the \textit{h}-CFA implementation and AAC on test cases from {\em Larceny R6RS} benchmark suite
 and some other examples.
 Figure~\ref{0-benchmark} compares the number of states that \textit{h}-CFA and AAC explored in monovariant analysis and Figure~\ref{1-benchmark} shows the test with 1-call-site sensitivity.
 
@@ -971,9 +967,9 @@ In JsCFA, we convert the standard semantics of JavaScript to small-step abstract
 The CESK machine operates directly over the abstract syntax tree (AST) yielded from the parser.
 The AST interface is shown in Figure~\ref{fig:js-stmt} and Figure~\ref{fig:js-expr} in Scala code.
 Most of the data structure is separated to two categories that inherit from abstract class \verb|Statement| and \verb|Expression| respectively.
-JsCFA distinguishes \emph{left values} from \emph{right values} at the syntactic level to simplify the implementation of CESK machine so that the expressions that are subclasses of \verb|LValue| are eventually reduced to left values, 
-The trait \verb|AbstractSyntaxTree| defines the field \verb|id| to hold an unique label for each AST node. 
-It also implements the method \verb|generateFrom| that spreads the static information from the AST nodes to 
+JsCFA distinguishes \emph{left values} from \emph{right values} at the syntactic level to simplify the implementation of CESK machine so that the expressions that are subclasses of \verb|LValue| are eventually reduced to left values,
+The trait \verb|AbstractSyntaxTree| defines the field \verb|id| to hold an unique label for each AST node.
+It also implements the method \verb|generateFrom| that spreads the static information from the AST nodes to
 local continuations and values.
 The top-level program is a sequence of statements wrapped in the statement \verb|Script|.
 
@@ -1089,11 +1085,11 @@ clarifies the semantics and improves the performance.
 
 JsCFA distinguishes three types of transition states: evaluation, continuation, and application.
 
-\textbf{Evaluation transition} accepts a state and matches its control string component to generate successors. 
+\textbf{Evaluation transition} accepts a state and matches its control string component to generate successors.
 %% Evaluation transitions first search values and reducible expressions/statements in the control strings.
-%% (We will refer the states that carry reducible expressions/statements as {\em complete states}) 
+%% (We will refer the states that carry reducible expressions/statements as {\em complete states})
 If the control string is a value (instance of class \verb|JSValue|), analysis would be dispatched to a continuation transition that depends upon the following control flow step retrieved from the top of local stack. Then the continuation transition determines how to use the value.
-If the control string is an expression/statement with no reducible sub-components, the abstract machine applies one of the {\em application transitions}. 
+If the control string is an expression/statement with no reducible sub-components, the abstract machine applies one of the {\em application transitions}.
 If the control string is an expression/statement with reducible sub-components, the abstract machine picks a reducible sub-component according to the evaluation order of JavaScript and generates a new continuation for the rest of the expression/statement.
 The new continuation is pushed onto the local stack and the abstract machine proceeds to evaluate the selected sub-component.
 Finally, there is a special case in dispatching to the continuation transitions. If the local stack is empty (no valid \verb|cont| in Figure~\ref{fig:eval}), then there is no ``next step'' in current execution context and the function does not have a return statement along the current execution path.
@@ -1143,7 +1139,7 @@ In this case, we return \verb|undefined| value to the {\em return} point restore
 \label{fig:eval}
 \end{figure}
 
-<<<<<<< HEAD
+
 \begin{figure}
 \lstset{language=Scala, mathescape}
 \begin{lstlisting}
@@ -1171,13 +1167,6 @@ $\dots$
 \caption{Parts of Evaluation Transition Rules for Expressions}
 \end{figure}
 
-\textbf{Continuation transitions} work on the six components that state objects have and an extra \emph{next continuation} (referred to as \verb|cont| in Figure~\ref{fig:cont-stmt} and Figure~\ref{fig:cont-expr}).
-Control strings in these transition states are alway values, so abstract machines dispatch transitions via matching \verb|cont| and plug the value into a new continuation.
-If the new continuation object is a reducible expression/statement, the next machine states will move to application transitions.
-Under this situation, the new continuation object is a \emph{complete} expression/statement that will be placed on control string position of next state.
-Otherwise, the new continuation that contains the value of control string is pushed into the local stack.
-Then, the following computing will be dispatched by next evaluation states.
-=======
 \textbf{Continuation transition} works on the six components of the state object and an extra \emph{next continuation} (referred to as \verb|cont| in Figure~\ref{fig:cont-stmt} and Figure~\ref{fig:cont-expr}).
 Control strings in these transition states are always values, so the abstract machine dispatches transitions via matching \verb|cont| and plug the value into the next continuation.
 If the next continuation is an expression/statement with no reducible sub-component, the next machine states will move to application transitions.
@@ -1186,7 +1175,6 @@ In this case, the new continuation is placed on the control-string position of n
 %% Then, the following computing will be dispatched by next evaluation states.
 If the next continuation contains reducible sub-components, then the abstract machine takes the same actions
 as it did for the {\em evaluation transitions}.
->>>>>>> e3ad50567adf9c482d4c660be7636115eae07800
 
 \begin{figure}
 \lstset{language=Scala, mathescape}
@@ -1277,7 +1265,7 @@ basicstyle=\scriptsize\ttfamily}
 
 \textbf{Application transition} just accepts its state to generate the subsequent states. Function \verb|isComplete| exams whether the passed-in state is complete by matching its control string.
 A complete control string represents an expressions/statement with no reducible sub-components.
-It is either an AST node from the parser or a continuation object generated by the continuation transitions. 
+It is either an AST node from the parser or a continuation object generated by the continuation transitions.
 The application transitions described in Figure~\ref{fig:app-stmt} and Figure~\ref{fig:app-expr} implement all the reduction rules of JavaScript.
 
 \begin{figure}
@@ -1507,7 +1495,7 @@ The object model of JsCFA is similar to that of $\lambda_{JS}$~\cite{guha2010ess
 JSObject : JSString \to JSReference
 \]
 The keys of an object are strings mapping to addresses that point to actual values in the store.
-Additionally, each object contains two special key/value pairs, \verb|"__proto__"| and \verb|"constructor"|, 
+Additionally, each object contains two special key/value pairs, \verb|"__proto__"| and \verb|"constructor"|,
 which are used to implement prototype-based inheritance of JavaScript.
 
 Consider the following example, which dynamically adds an field to an object.
@@ -1524,15 +1512,15 @@ To address this problem, we apply object-sensitive allocation for the dynamic ob
 \]
 The object-sensitive allocation function separates dynamically added fields in different dimensions for each object.
 Only the application transition rules for \verb|LDot| and \verb|LBracket| use $\widetilde{alloc}^{o}_{JsCFA}$ for adding fields, while other transitions are context insensitive.
-Ultimately, JsCFA achieves more precision dynamic objects without significant overhead. 
+Ultimately, JsCFA achieves more precision dynamic objects without significant overhead.
 
 \section{Abstract Garbage Collection as Stack Filtering}
 \label{sub:filtering}
 In practice, perfect call/return matching with monovariant analysis is not too useful.
-Let's revisit the simple example in Section~\ref{Introduction}. 
+Let's revisit the simple example in Section~\ref{Introduction}.
 If our abstract interpreter can match call/return flows perfectly, the variable \verb|a| would get value \verb|1| after executing call site 1. Then, when call site 2 invokes function \verb|id| again, the new argument \verb|#t| merges with \verb|1| that was passed into \verb|x| by call site 1.
 Finally, the merged abstract value \verb|{1, #t}| returns to variable \verb|b|.
-This kind of spurious result may flow into the rest of abstract interpretation and its accumulative effect will 
+This kind of spurious result may flow into the rest of abstract interpretation and its accumulative effect will
 dramatically impact the analysis precision of higher-order programs.
 
 For example, in the following function \verb|compose-same|, the local variable \verb|f| is called twice.
@@ -1551,19 +1539,19 @@ Traditional \textit{k}-CFA attempts to resolve this problem via introducing cont
 However, polyvariance is neither efficient nor a sufficient solution to this problem.
 
 The reason why different actual parameters merge into the same formal parameters is that the monovariant abstract interpreters breaks the concrete semantics. Concrete interpreters never merge parameters from different call sites because local variables will be deleted when the interpreter exits from the function.
-To solve this problem, CFA2 invented an approach named ``stack filtering'', which simulates the semantics of popping the stack frames to remove useless values of local variables. 
-However, stack filtering has two limitations so that it cannot be ported to AAM\@. On one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values. 
+To solve this problem, CFA2 invented an approach named ``stack filtering'', which simulates the semantics of popping the stack frames to remove useless values of local variables.
+However, stack filtering has two limitations so that it cannot be ported to AAM\@. On one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values.
 On the other hand, we cannot always pop stack frames after a function call returns because continuation stores may become graphs that contain cycles rather than stacks (see Section~\ref{sub:Polyvariant Continuation}).
 
-Introspective pushdown control flow analysis~\cite{earl2012introspective} described by Earl, Sergey, Might, and Van Horn integrates abstract garbage collection~\cite{might2006improving} in PDCFA to implement stack filtering. 
-JsCFA also adopts this strategy to improve analysis precision and makes call/return matching more useful. 
+Introspective pushdown control flow analysis~\cite{earl2012introspective} described by Earl, Sergey, Might, and Van Horn integrates abstract garbage collection~\cite{might2006improving} in PDCFA to implement stack filtering.
+JsCFA also adopts this strategy to improve analysis precision and makes call/return matching more useful.
 The semantics of abstract garbage collection is the same as its counterparts in concrete interpreters.
 We first scan the current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' non-local variables. Each address reached in the last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by the addresses that do not appear in the mark set are regarded as garbage.
 
 However, the effect of abstract garbage collection is relatively weak in global store because the values referred by the unexecuted paths have to stay in the store even though the current state cannot reach them.
 Therefore, Earl et al.\ implemented PDCFA with abstract GC with per-state stores to achieve the full power of abstract GC\@.
 Although AAM with per-state stores theoretically has exponential time complexity, in practice, its performance is much better than AAM with global store but without abstract GC\@.
-Consequently, we also implement JsCFA with per-state stores. Moreover, we used two techniques to optimize the performance of abstract GC with per-state stores. 
+Consequently, we also implement JsCFA with per-state stores. Moreover, we used two techniques to optimize the performance of abstract GC with per-state stores.
 Firstly, JsCFA implements the stores with copy-on-write since only the application states may change the store, so evaluation and continuation states interpreted between two application states share one store.
 Secondly, abstract GC never directly deletes values even if they are detected as garbage. When the abstract interpreter requires a new copied store, we just copy values that are referred by mark set (reached values) to eliminate the overhead of imperative deleting elements in stores.
 The class \verb|Memory| provides the method \verb|copy| that launches GC and returns a new memory instance only containing reachable elements.
@@ -1588,19 +1576,19 @@ keywords={function, for, in, if, return, var}}
 \end{lstlisting}
 The function \verb|extend| accepts two objects as parameters, \verb|target| and \verb|source|.
 Then all fields of object \verb|source| are copied into \verb|target|. If we apply traditional static analysis (points-to analysis) techniques to programs that extensively use this function, the precision would be dramatically decreased.
-In a monovariant analysis on function \verb|extend|, all field names (strings) of \verb|source| flow into \verb|propName| and merges to a ``variable string'' (top value of string in JsCFA), and all the field values of \verb|source| are merged in this field of \verb|target|. 
+In a monovariant analysis on function \verb|extend|, all field names (strings) of \verb|source| flow into \verb|propName| and merges to a ``variable string'' (top value of string in JsCFA), and all the field values of \verb|source| are merged in this field of \verb|target|.
 
 Traditional monovariant analysis does not handle the high-level semantics that copy the fields from one object to another.
 Fortunately, there are techniques that attempt to recognize this kind of high-level semantics.
 Correlation tracking~\cite{sridharan2012correlation}
-is one of these techniques that matches \emph{correlated dynamic property access} patterns that are often used to implement \verb|extend|. 
+is one of these techniques that matches \emph{correlated dynamic property access} patterns that are often used to implement \verb|extend|.
 That approach injects local context using the values of the {\em propName} in the body of the for-loop so that the
-field values of \verb|source| is never merged in \verb|target|. 
+field values of \verb|source| is never merged in \verb|target|.
 
 To implement this strategy in JsCFA, we have to retain the code patterns of the input programs in the intermediate representations (IR) for the abstract interpreter.
 This is the most significant reason why we adopted AST as the IR of JsCFA rather than some low-level forms such as ANF\@.
-However, if we revise \textit{h}-CFA to work with AST in JsCFA\@, 
-it would require extra effort to record the program execution history. 
+However, if we revise \textit{h}-CFA to work with AST in JsCFA\@,
+it would require extra effort to record the program execution history.
 For this reason, JsCFA implements \textit{h}-CFA using an indirect approach that can still achieve perfect call/return matching without recording execution histories.
 
 \subsection{The Essence of \textit{h}-CFA}
@@ -1691,14 +1679,8 @@ Inspired by the abstract garbage collection on value stores (see Section~\ref{su
 \[
 \widetilde{kalloc_{JsCFA}}(State(e, env, localStack, a, memory), e\textprime) = StackAddress(e.id, e\textprime .id)
 \]
-
-<<<<<<< HEAD
-At the beginning of each memory copying, JsCFA starts abstract GC that also eliminates unreachable elements in the stack (continuation store).
-When JsCFA begins to analyze call site \verb|(fib 20)| in the program shown in Figure~\ref{fig:anf-fib}, old stack frames generated by previous computation are already reclaimed.
-=======
 Before copying {\em memory}, JsCFA starts abstract GC that eliminates unreachable elements in the stack (continuation store).
 When JsCFA begins to analyze the call site \verb|(fib 20)| in the example showed in Figure~\ref{fig:anf-fib}, old stack frames generated by previous computation are already reclaimed.
->>>>>>> e3ad50567adf9c482d4c660be7636115eae07800
 
 \[
 \widetilde{a_k{}_{21}} = ((fib\ 20), \widehat{fib})
@@ -1731,7 +1713,7 @@ Then the abstract interpreter dives into this call site. When the call completes
 \end{aligned}
 \]
 
-Therefore, the control flow can only go back to the return point \verb|b| through the stack $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}} \to \widetilde{a_k{}_{init}}$. 
+Therefore, the control flow can only go back to the return point \verb|b| through the stack $\dots \to \widetilde{a_k{}_{2}} \to \widetilde{a_k{}_{21}} \to \widetilde{a_k{}_{init}}$.
 
 Using abstract garbage collection, JsCFA can realize perfect call-return matching by analyzing programs without ANF transformation.
 
@@ -1781,16 +1763,16 @@ Although, \textit{h}-CFA and JsCFA are much easier to implement and understand t
 The described details show that implementing JsCFA is very similar to writing a concrete interpreter so that programmers can directly convert their compiler or interpreter knowledge to static analysis.
 However, \textit{h}-CFA and JsCFA are both based on CESK abstract machine that is a small-step semantic model.
 For realistic programming languages that have relatively complex syntax, the implementation of small-step semantics has to introduce many ``continuation'' components.
-Manually operating various continuations is tedious and the code of  
+Manually operating various continuations is tedious and the code of
 abstract interpreter is also not as intuitive as the code that implements big-step operation semantics.
 Consequently, in future work, we plan to design a domain specific language (DSL) that describes abstract semantics in the big-step style, and abstract interpreters written in the DSL can be compiled to small-step CESK or CESK$^H$ machines.
-Olivier~\cite{danvy2008defunctionalized} discovered that there is an essential connection between big-step 
+Olivier~\cite{danvy2008defunctionalized} discovered that there is an essential connection between big-step
 operational semantics and small-step CESK machine~\cite{felleisen2009semantics}.
 A big-step interpreter can be translated to an equivalent small-step interpreter though CPS transformation~\cite{danvy1992representing}, defunctionalization~\cite{danvy2001defunctionalization}, and fusion.
 Therefore, we will continue to design the DSL and the compiler to make abstract interpreters closer to concrete ones.
 
 \paragraph{Precision}
-Because JavaScript is a prototype-based and highly dynamic language that heavily relies upon objects, 
+Because JavaScript is a prototype-based and highly dynamic language that heavily relies upon objects,
 traditional control flow analysis is not enough for realistic JavaScript programs and libraries.
 Various previous works applied different techniques to analyze JavaScript or subsets of it, such as pointer analysis, string analysis, and numeric range analysis.
 JSAI~\cite{kashyap2014jsai} is a static analyzer for JavaScript based on AAM that uses more sophisticated models for abstract objects, abstract strings, and constant propagation.
