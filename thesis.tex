@@ -535,11 +535,12 @@ Although P4F cannot infinitely match call/return flows, it still discovers the e
 
 \chapter{Pushdown CFA based on Program Execution History}
 \label{sec:hcfa}
-Inspired by P4F, we deem that pushdown analysis (polyvariant continuation store) is orthogonal from polyvariant store, in other words, control flow analysis can get call/return matching that does not depend on polyvariant values. Simultaneously, we try to find the proper contexts for polyvariant continuations.
+Inspired by P4F, we deem that pushdown analysis (polyvariant continuation store) is orthogonal from polyvariant store. In other words, control flow analysis can achieve call/return matching without polyvariant values. 
+At the same time, we try to find the proper contexts for polyvariant continuations.
 
 This section describes CESK$^H$ machines that record ``program execution history'' into each abstract machine state.
 The program execution history records and summarizes execution path from the beginning of program to the current state.
-During evaluating function calls, the program execution history can be used to uniquely represent current call site in the continuation store.
+During the evaluation of function calls, the program execution history can be used to uniquely represent current call site in the continuation store.
 
 \section{Program Execution History}
 \label{sub:Program Execution History}
@@ -590,13 +591,13 @@ Data types and notations of CESK$^H$ are defined below. We changed parts of CESK
 \tag{continuation addresses}
 \widetilde{a_k^H} \in \widetilde{KAddr} \ is\ a\ finite\ set
 \]
-In ANF programs, environment naturally maintains intra-procedural execution history because ANF explicitly extracts intra-procedural control flows in let-bindings and saves every intermediate result in a local variable.
+In ANF programs, environment naturally maintains intra-procedural execution history because ANF explicitly extracts intra-procedural control flows in let-bindings and saves each intermediate result in a local variable.
 Consequently, the program execution histories can be implemented as propagating environments by $\widetilde{History}$ field of CESK$^H$ machine states.
-We consider execution histories as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, program execution histories can automatically stop growth for recursive calls, and the worklist algorithm will be responsible for finding the fixed-point of recursive computation.
+We consider execution histories as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, program execution histories can automatically stop growing for recursive calls, and the worklist algorithm will be responsible for finding the fixed-point of recursive computation.
 
-Following definitions describe the abstract semantics of CESK$^H$ machine.
+The following definitions describe the abstract semantics of CESK$^H$ machine.
 
-Calls:
+\paragraph{Calls}
 \[
 \overbrace{
 \big((let\ ((y\ (f\ \ae))\ e)), \tilde{\rho}, \tilde{\sigma}, \widetilde{\sigma^H_k}, \widetilde{a^H_k}, \tilde{h} \big)
@@ -627,9 +628,9 @@ Calls:
 \[
 \tilde{h}\textprime = \tilde{h}[x \mapsto \tilde{a}]
 \]
-The semantics of function calls propagate execution history by adding current ``intermediate variable'' to $\tilde{h}$, but the updating of execution history is different from environment extension that recoveries the environments from function definition points.
+The semantics of function calls propagate execution history by adding current ``intermediate variable'' to $\tilde{h}$, but execution history extension is different from environment extension, which recovers the base environment from function definition point.
 
-Declarations:
+\paragraph{Declarations}
 \[
 \overbrace{
 \big((let\ ((y\ \ae)\ e)), \tilde{\rho}, \tilde{\sigma}, \widetilde{\sigma^H_k}, \widetilde{a^H_k}, \tilde{h} \big)
@@ -651,7 +652,7 @@ Declarations:
 Declarations are \verb|let| forms that just binds atomic expressions to variables.
 Its semantics is very straightforward that propagates environments ($\tilde{\rho}$) and histories ($\tilde{h}$) through the linear control flow.
 
-Returns:
+\paragraph{Returns}
 \[
 \overbrace{
 (\ae, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma_k}, \widetilde{a_k^H}, \tilde{h})
@@ -673,17 +674,18 @@ Returns:
 \[
 \tilde{h}\textprime = \tilde{h_k}[x \mapsto \tilde{a}]
 \]
-In returns' definition, abstract interpreters restore up-level's history from the frames refereed by current continuation address, and this behavior is similar to environment restoring.
+In {\em return}'s definition, an abstract interpreter restores up-level's history from the frames referred by the current continuation address, which is similar to restoring the environment.
 The $\widetilde{kalloc_h}$ takes the execution history to compute the unique continuation address for corresponding call site.
 \[
 \widetilde{kalloc_h} ((e, \tilde{\rho}, \tilde{\sigma}, \widetilde{\sigma_k^H}, \widetilde{a_k^H}, \tilde{h}), e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime) =
 (e, e\textprime, \tilde{h})
 \]
-$\widetilde{KAddr^H}$ in CESK$^H$ machines is encoded by: (1) the call stie $e$, (2) the callee function $e\textprime$, (3) and current execution history $\tilde{h}$. 0-CFA-like analysis in AAM just adopts $e\textprime$ to refer abstract continuations, so all the potential call sites that may invoke $e\textprime$ will merge with each others. Therefore, the $\widetilde{KAddr^H}$ definition distinguishs as many as possible call sites of $e\textprime$ via the very last call site $e$ and the rests encodeed by $\tilde{h}$.
+$\widetilde{KAddr^H}$ in CESK$^H$ machines is encoded by: (1) the call site $e$, (2) the callee function $e\textprime$, (3) and current execution history $\tilde{h}$. 0-CFA-like analysis in AAM just adopts $e\textprime$ to refer abstract continuations, so all the potential call sites that may invoke $e\textprime$ will merge with each others. Therefore, the $\widetilde{KAddr^H}$ definition distinguishs as many as possible call sites of $e\textprime$ via the very last call site $e$ and the rests encoded by $\tilde{h}$.
 
 \section{Polyvariant Continuation}
 \label{sub:Polyvariant Continuation}
-We would like to exam the analysis process of a simple example to understand \textit{h}-CFA, the example program is showed in Figure~\ref{fig:anf-fib}.
+In this section, we use a simple example in Figure~\ref{fig:anf-fib} to explain the analysis process of 
+\textit{h}-CFA. 
 
 \begin{figure}
 \small
@@ -712,16 +714,19 @@ For convenient  demonstrating, we use complete Scheme language with numbers and 
 \label{fig:anf-fib}
 \end{figure}
 
-In this section, execution histories are briefly represented as variable sequences, and the called function (the second part of $\widetilde{KAddr^H}$) is replaced by its function name wearing a hat. This temporary convince just makes the explanation more readable but not actually modify the abstract semantics of CESK$^H$ machines.
+For simplicity, the execution histories are represented as variable sequences, and the called function (the second part of $\widetilde{KAddr^H}$) is replaced by its function name wearing a hat. 
+This simplification improves readability without modifying the abstract semantics of CESK$^H$ machine.
 
-Through steps of the abstract interpretation, the first call site (a (fib 10)) carries history $\{fib\}$ that means in this program point we only finished computing the declaration of function \verb|fib|.
-Thus, the continuation (call stack frame) of the call site is allocated at $((fib\ 10), \widehat{fib}, \{fib\})$, and the stack frame looks like $(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \{fib\}, \widetilde{a^H_k{}_{init}})$ that is the one and only element of the continuation store so far.
-The stack frame expresses that after complete this invocation,
-(1) return value will be stored in variable \verb|a|,
+Through steps of the abstract interpretation, the first call site $(a\ (fib\ 10))$ carries the history $\{fib\}$,
+which means that, at this program point, we have only finished computing the declaration of the function $fib$|.
+Thus, the continuation (call stack frame) of the call site is allocated at $((fib\ 10), \widehat{fib}, \{fib\})$, and the stack frame looks like $(a, (let\ (b\ (fib\ 20))\ \dots), \widetilde{env_1}, \{fib\}, \widetilde{a^H_k{}_{init}})$, which is the only element in the continuation store so far.
+
+The stack frame expresses that after completing this invocation,
+(1) the return value will be stored in variable $a$,
 (2) the computation will shift to $(let\ (b\ (fib\ 20))\ \dots)$ with environment $\widetilde{env_1}$,
-(3) and recover continuation address $\widetilde{a^H_k{}_{init}}$ a fake continuation address representing top level's continuation.
+(3) and the continuation address $\widetilde{a^H_k{}_{init}}$, a fake one for the top-level continuation, will be recovered.
 
-After diving into the callee function, the second call appears at (res3 (fib res2)). At this point, the execution history $\{fib, res1, res2\}$ is different from the history of last call site, so the continuation store contains two abstract continuations with distinct addresses.
+After diving into the callee function, the second call appears at $(res3\ (fib\ res2))$. At this point, the execution history $\{fib, res1, res2\}$ is different from the history of last call site, so the continuation store contains two abstract continuations with distinct addresses.
 \[
 \widetilde{a^H_k{}_1} = ((fib\ 10), \widehat{fib}, \{fib\})
 \]
@@ -736,13 +741,13 @@ After diving into the callee function, the second call appears at (res3 (fib res
 \end{aligned}
 \]
 
-As above illustration shows, the continuation store is a stack with linked-list structure. Each frame has a $\widetilde{a^H_k}$ that points to the next frame in the stack. This stack-like structure perfect mimics call stacks of concrete interpreters. Certainly, the call stie (fib res4) will also gets its own execution history after computation of (fib res2) becomes complete (reached its fixed-point).
+As above illustration shows, the continuation store is a stack with linked-list structure. Each frame has a $\widetilde{a^H_k}$ that points to the next frame in the stack. This stack-like structure perfectly mimics call stacks of concrete interpreters. Certainly, the call site $(fib\ res4)$ will also gets its own execution history after computation of $(fib\ res2)$ completes (i.e. after reaching its fixed-point).
 
 \[
 \widetilde{a^H_k{}_3} = ((fib\ res4), \widehat{fib}, \{fib, res1, res2, res3, res4\})
 \]
 
-However, (res3 (fib res2)) is a recursive call site, so the execution history at this point will not be added new element to distinguish (res3 (fib res2)) from its variances of different recursive levels. Thus, control flows from multiple recursive levels of a call site are merged into one continuation address. Eventually, there are three frames merged into $\widetilde{a^H_k{}_2}$, but this merge does not lead ``static'' call/return mismatch. All of the frames merged into $\widetilde{a^H_k{}_2}$ can bring control flow back to set \verb|res3|.
+However, $(res3\ (fib\ res2))$ is a recursive call site. So the execution history at this point will not add new element to distinguish $(res3\ (fib\ res2))$ from its variations at different recursive levels. Thus, control flows from multiple recursive levels of a call site are merged into one continuation address. Eventually, there are three frames merged into $\widetilde{a^H_k{}_2}$, but this merging does not lead ``static'' call/return mismatch. All of the frames merged into $\widetilde{a^H_k{}_2}$ can bring control flow back to set \verb|res3|.
 
 \[
 \begin{aligned}
@@ -752,17 +757,17 @@ However, (res3 (fib res2)) is a recursive call site, so the execution history at
 \end{aligned}
 \]
 
-The merging expresses a fact that the invocation of \verb|fib| at point (fib res2) may be made by (a (fib 10)) or (res3 (fib res2)). Moreover, the second frame in above illustration has the ``next'' pointer $\widetilde{a^H_k{}_2}$ that refers to itself. This cycle makes the continuation store no longer stack-like, but a graph.
+The merging expresses a fact that the invocation of $fib$| at point $(fib\ res2)$ may be made by $(a\ (fib\ 10))$ or $(res3\ (fib\ res2))$. Moreover, the second frame in the above illustration has the ``next'' pointer $\widetilde{a^H_k{}_2}$ that refers to itself. This cycle makes the continuation store no longer stack-like, but a graph.
 
-After compute (a (fib 10)), the function \verb|fib| is called again by (b (fib 20)). At this point, $\widetilde{kalloc_h}$ generates a new continuation address.
+After computing $(a\ (fib\ 10))$, the function $fib$ is called again by $(b\ (fib\ 20))$. At this point, $\widetilde{kalloc_h}$ generates a new continuation address.
 
 \[
 \widetilde{a^H_k{}_4} = ((fib\ 20), \widehat{fib}, \{fib, a\})
 \]
 
-The execution history of this point becomes $\{fib, a\}$ that summarize the execution path of computing (a (fib 10)) to \verb|a|. In other words, the program execution history just cares about which portions of the program we have done, but it ignores how we got them. This summarization limits length of execution histories under $O(\textit{n})$ (the size of input program) in worst cases.
+The execution history of this point becomes $\{fib, a\}$ that summarizes the execution path of computing $(a\ (fib\ 10))$ to $a$. In other words, the program execution history just cares about which portions of the program we have done, but it ignores how we got them. This summarization limits the length of the execution histories under $O(\textit{n})$ (the size of input program) in the worst case.
 
-Then the abstract interpreter restarts to execute the function and encounters call site (res3 (fib res2)) again. At this time, the continuation address ($\widetilde{a^H_k{}_5}$) allocated for call site (res3 (fib res2)) differs from last time, which makes sure there are two distinct ``call stacks''. Consequently, function \verb|fib| called from (b (fib 20)) will never return to (a (fib 10)), vice versa.
+Then the abstract interpreter restarts to execute the function and encounters call site $(res3\ (fib\ res2))$ again. At this time, the continuation address ($\widetilde{a^H_k{}_5}$) allocated for call site $(res3\ (fib\ res2))$ differs from last time, which makes sure that there are two distinct ``call stacks''. Consequently, function $fib$ called from $(b\ (fib\ 20))$ will never return to $(a\ (fib\ 10))$ and vice versa.
 
 \[
 \widetilde{a^H_k{}_5} = ((fib\ res2), \widehat{fib}, \{fib, a, res1, res2\})
@@ -770,7 +775,8 @@ Then the abstract interpreter restarts to execute the function and encounters ca
 
 \section{Complexity and Precision of \textit{h}-CFA}
 \label{sub:swh}
-Store-widening is also employed in \textit{h}-CFA for value and continuation store both, but we do not yet prove a polynomial time complexity for \textit{h}-CFA\@.
+We have applied store-widening to \textit{h}-CFA for both the value store and the continuation store. 
+However, we have not obtained a polynomial time complexity for \textit{h}-CFA\@.
 \begin{table}[t]
 \centering
 \label{compare}
@@ -793,19 +799,20 @@ AAC       & Infinite        & \checkmark   & \checkmark   & Easy         & $O(n^
 \label{tab:comparison}
 \end{table}
 A comparison of the related pushdown CFA algorithms with \textit{h}-CFA is shown in Figure~\ref{tab:comparison}.
-According to this table, our technique seems worse than AAC in performance. However, in practice the performance of \textit{h}-CFA is better than AAC for most cases.
-We ran our \textit{h}-CFA implementation and AAC on test cases from Larceny R6RS benchmark suite and other examples.
-Figure~\ref{0-benchmark} compares the number of states that \textit{h}-CFA and AAC explored in monovariant analysis, and Figure~\ref{1-benchmark} shows the test with 1-call-site sensitivity.
+According to this table, our technique seems be worse than AAC in asymptotic upper bounds. However, in practice the performance of \textit{h}-CFA is better than AAC for most cases.
+We have run both the \textit{h}-CFA implementation and AAC on test cases from {\em Larceny R6RS} benchmark suite 
+and some other examples.
+Figure~\ref{0-benchmark} compares the number of states that \textit{h}-CFA and AAC explored in monovariant analysis and Figure~\ref{1-benchmark} shows the test with 1-call-site sensitivity.
 
-Additionally, AAC has a critical drawback on space complexity when it is applied in real world.
+Moreover, AAC has a major drawback, which is its space complexity in real world applications.
 %AAC is another method for obtaining perfect stack precision in AAM\@.
-The essential strategy of AAC is defined below\cite{gilray2016pushdown}.
+The essential strategy of AAC is defined below~\cite{gilray2016pushdown}.
 \[
 \widetilde{kalloc}_{AAC}((e, \tilde{\rho}, \tilde{\sigma}, \tilde{a}_k), e\textprime,  \tilde{\rho}\textprime, \tilde{\sigma}\textprime) = (e\textprime,  \tilde{\rho}\textprime, e, \tilde{\rho}, \tilde{\sigma})
 \]
 The function $\widetilde{kalloc}_{AAC}$ encodes an unique continuation address for the call site with a target closure ($e\textprime,  \tilde{\rho}\textprime$), a source closure ($e, \tilde{\rho}$), and store $\tilde{\sigma}$.
 This strategy would work well if we use purely functional data structures to implement stores.
-However, in realistic analyzers, functional data structures usually incurs considerable performance cost, and imperative stores will strongly increase the space complexity of AAC\@.
+However, in realistic analyzers, functional data structures usually incurs considerable performance cost, and imperative stores will significantly increase the space complexity of AAC\@.
 
 \begin{figure}
   \centering
@@ -996,6 +1003,7 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}
 \begin{figure}
 %\small
 \lstset{language=Scala,
+basicstyle=\tiny,
 frame=single,
 breaklines=true,
 postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}}
