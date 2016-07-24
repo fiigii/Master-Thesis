@@ -35,7 +35,6 @@
 }
 
 \lstset{basicstyle=\footnotesize\ttfamily}
-%\usepackage{titling}
 \makeatletter
 \def\tagform@#1{\maketag@@@{[\ignorespaces#1\unskip\@@italiccorr]}}
 \makeatother
@@ -48,27 +47,25 @@
 \degree{Master of Science}
 \submitdate{August 2016}
 
-%\maketitle
-%\tableofcontents
 \Abstract{
-  In control flow analysis (CFA), call/return mismatch is always a problem that dramatically reduces analysis precision.
-  Original \textit{k}-CFA uses bounded call strings to obtain limited call/return matching, but it has a serious performance problem
+  In control flow analysis (CFA), call/return mismatch is a problem that reduces analysis precision.
+  So-called \textit{k}-CFA uses bounded call-strings to obtain limited call/return matching, but it has a serious performance problem
   due to its coupling of call/return matching with context-sensitivity of values.
-  Meanwhile, abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
-  introduced store-allocated continuation that made the soundness of abstract interpreters easily obtainable.
-  Recently, there are three related approaches (PDCFA, AAC, and P4F) that provide call/return matching for AAM by modeling call-stack as a pushdown system.
-  However, PDCFA needs significant engineering effort to \pagebreak implement.
-  AAC incurs high overhead and is hard to understand while P4F cannot work with monovariant analysis (0-CFA).
+  The abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
+  introduces store-allocated continuations that make the soundness of abstract interpreters easily obtainable.
+  Recently, two related approaches (AAC and P4F) provide call/return matching using AAM by modeling the call-stack as a pushdown system.
+  However, AAC incurs high overhead and is hard to understand, while P4F cannot compute monovariant analysis. \pagebreak
   To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
+  \textit{h}-CFA records the program execution history during abstract interpretation and uses it to avoid control flow merging that causes call/return mismatch.
   Our method uses AAM and is very easy to implement for ANF style program.
-  In addition, our method reveals an essential property of pushdown CFA,
-  which we exploited in the development of a static analyzer for JavaScript, named JsCFA, without ANF transformation.
-  JsCFA adopts a technique to solve the environment problem or fake rebinding, which eliminates more defects of monovariant analysis.
+  ANF is a popular intermediate representation of programs that converts all complex intra-procedural control flows to linear let-bindings and sets a syntactic variable to each sub-expression. In addition, our method reveals an essential property of any pushdown CFA,
+  which we exploited in the development of a static analyzer for JavaScript, named JsCFA\@.
+  This application of the essential property avoids recording the program execution history, so source programs are no long required being the ANF form.
+  Meanwhile, JsCFA adopts a technique to solve the environment problem or fake rebinding, which eliminates more defects of monovariant analysis.
   This, in cooperation with exact call/return matching, yield more precise analysis and better performance.
   Moreover, JsCFA supports a configurable interface to add context-sensitivity to selected areas of programs.
   JsCFA applies the interface to improve the analysis precision for runtime object extensions.
   Finally, we quantitatively evaluated the performance of JsCFA\@.
-%\end{abstract}
 }
 
 \beforepreface
@@ -81,14 +78,13 @@
 %\section{Control Flow Analysis}
 %\label{sub:CFA}
 Dynamic programming languages, such as JavaScript, Python, and Ruby, play a significant role in computing areas, such as system management, web development, and scientific computing.
-%Particularly, over the past decade, JavaScript has become a ubiquitous computing environment.
-However, certain features of these languages (e.g.\ duck-typing, first-class function, and highly dynamic object model) make error detection difficult.
+However, certain features of these languages (e.g.\ duck-typing, first-class functions, and highly dynamic object models) make static error detection difficult.
 To this end, control flow analysis~\cite{midtgaard2012control}
- (CFA) has become a viable approach to detect deep semantic defects before actual running of programs written in dynamic languages.
+ (CFA) has been used to detect deep semantic defects before the actual running of programs written in dynamic languages.
 
 CFA is a class of algorithms that give conservative approximation to inter-procedural information of programs
 before running them.
-In particular, statically detecting the precise target of a function call is difficult for programs written in
+Statically detecting the precise target of a function call is difficult for programs written in
 higher-order (functional) languages.
 To illustrate this problem, consider the following example in Scheme.
 \lstset{language=Lisp,
@@ -100,13 +96,16 @@ keywords={let,lambda}}
          (h (lambda (z) (+ z 3))))
       (+ (f g) (f h)))
 \end{lstlisting}
-In the body of function \verb|f|, the call site \verb|(x 1)| will transfer control flow to function bodies that variable \verb|x| potentially refers to.
-However, the next control flow is not obvious because \verb|x| is the formal parameter of function \verb|f| and will bind to
+In the body of function \verb|f|, the call site \verb|(x 1)| will transfer control to function bodies that variable \verb|x| potentially refers to.
+However, the next step in the control flow is not obvious because \verb|x| is the formal parameter of function \verb|f| and will be bound to
 unknown values.
 Shivers invented \textit{k}-CFA~\cite{shivers1991control}
 as the first popular solution to the control flow problem.
 \textit{k}-CFA applies an abstract interpretation~\cite{cousot1977abstract} approach to simulate program execution statically and
 provides conservative approximations with a configurable hierarchy of precision.
+Shivers chose finite call-strings~\cite{sharir1978two} to represent runtime contexts for the abstract interpretation.
+Call-strings with length of \textit{k} record latest \textit{k} call sites, which make the state space of \textit{k}-CFA finite, and longer call-strings yield more precise analysis with higher overhead.
+0-CFA is a special case of \textit{k}-CFA that uses empty call-strings (\textit{k} is zero).
  \begin{figure}
  \lstset{language=Lisp,
  mathescape,
@@ -123,61 +122,88 @@ provides conservative approximations with a configurable hierarchy of precision.
 %\section{Problems of CFA}
 %\label{sub:}
 \paragraph{Problems of CFA}
-The original \textit{k}-CFA is too imprecise for realistic programs.
+The 0-CFA and \textit{k}-CFA without enough context information is imprecise for realistic programs.
 For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces the precision of analysis.
-Consider the trivial example in Figure~\ref{fig:eg1}, where, in 0-CFA (a context-insensitive variant of \textit{k}-CFA), the \verb|id| function is called twice and \verb|#t| eventually flows into variable \verb|a| because there is a spurious flow from call site
+Consider the trivial example in Figure~\ref{fig:eg1}, where, in 0-CFA, the \verb|id| function is called twice and \verb|#t| eventually flows into variable \verb|a| because there is a spurious flow from call site
 \verb|(id #t)| to \verb|(id 1)|.
 
-In \textit{k}-CFA ($k \geq 1$), the values of the local variable \verb|x| are distinguished by different call site environments.
+In 1-CFA ($k = 1$), the values of the local variable \verb|x| are distinguished by different call site environments.
 In this example, the two calls to the \verb|id| function are labeled with $1$ and $2$ respectively.
 Different versions of the variable $x$ in different calls are separated by the call site labels.
-For example, $(x, 2) \mapsto \#t$ because the value of \verb|x| is \verb|#t| at call site 2.
+For example, $(x, [2]) \mapsto \{\#t\}$ because the value of \verb|x| is \verb|#t| at call site 2.
 Original \textit{k}-CFA also uses the variables' environment to filter inter-procedural control flows,
 which means that the value of \verb|x| from call site 2 only can be returned to \verb|(id #t)|.
-In this case (non-recursive program), call string with size 1 is enough to provide precise call/return flow
-(both value and control flow). %% TODO: explain call string
-However, longer call sequences or recursive calls may break the rule and propagate spurious information to the whole program.
-Meanwhile, the performance is unacceptable even when $k = 1$.
+In this case (a non-recursive program), call-string with size 1 is enough to provide precise call/return flow
+(both data and control flow).
+However, longer call sequences or recursive calls propagate spurious information to the whole program.
+
+\begin{figure}
+\lstset{language=Lisp,
+mathescape,
+keywords={let,lambda}}
+\begin{lstlisting}
+  (let* ((id (lambda (x) x))
+         (f (lambda (y) (id y)$^1$))
+         (a (f 1)$^2$)
+         (b (f #t)$^3$))
+      $\dots$)
+\end{lstlisting}
+\caption{An example program showing imprecision of 1-CFA}
+\label{fig:eg2}
+\end{figure}
+
+Consider the example in Figure~\ref{fig:eg2}, the \verb|id| function is called by \verb|f|, and there are two calls to function \verb|f|.
+1-CFA is no longer precise for this program because $(x, [1])$ can be generated by call site 2 and 3 both.
+Then abstract value \verb|{1, #t}| eventually flows into variable \verb|a| and \verb|b|.
+In this example, 2-CFA can distinguish the two call sites, which $(x, [2, 1]) \mapsto \{1\}$ and $(x, [3, 1]) \mapsto  \{\#t\}$ indicate correct data and control flows.
+Therefore, we can achieve precise call/return matching with a large enough \textit{k} on non-recursive programs.
+However, recursive function invocations can make any call-string ``overflow'', which call-strings will be filled by duplicated recursive call sites and lose earlier context information.
+Particularly, the recursion is ubiquitously existing in functional programs.
+Meanwhile, the performance of \textit{k}-CFA is unacceptable even when $k = 1$~\cite{van2008deciding}.
+
+In addition, \textit{k}-CFA is tightly bound with call-site sensitivity, other context-sensitivity strategies~\cite{agesen1995cartesian, milanova2005parameterized,smaragdakis2011pick, lhotak2003scaling, wright1998polymorphic} is hard to be applied.
 
 \paragraph{Existing techniques}
-There is a family of algorithms that attempt to perfectly match return flows with their true call site entries in static analysis, which is referred to as pushdown or context-free approach.
-CFA2 is the first attempt that brings precise call/return matching to monovariant analysis in exponential time complexity.
-Additionally, there are other three approaches (PDCFA, AAC, and P4F) that provide call/return matching for abstracting abstract machine by modeling call-stack as a pushdown system.
-However, PDCFA needs significant engineering effort to implement.
-AAC incurs high overhead and is hard to understand while P4F cannot work with monovariant analysis (0-CFA).
+There is a family of algorithms that attempt to perfectly match return flows with their true call site entries in static analysis, which is referred to as pushdown or context-free approach~\cite{reps1995precise, sagiv1996precise}.
+CFA2~\cite{vardoulakis2010cfa2} is the first attempt that brings precise call/return matching to monovariant analysis in exponential time complexity.
+Because monovariant analysis still merges too many data flows even if it has accurate inter-procedural control flows, CFA2 introduces \emph{stack filtering} to eliminate the imprecision of local variables.
+Additionally, there are other three approaches (PDCFA~\cite{earl2010pushdown}, AAC~\cite{johnson2015abstracting}, and P4F~\cite{gilray2016pushdown}) that provide accurate call/return matching by modeling the call-stack as a pushdown system.
+However, PDCFA also needs significant engineering effort to implement~\cite{gilray2016pushdown}.
+AAC and P4F is easy to implement in the abstracting abstract machine (AAM)~\cite{van2010abstracting} framework, but AAC incurs high overhead (Section~\ref{}) and is difficult to understand while P4F cannot compute monovariant analysis and just has limited call/return matching strength.
 
 \paragraph{A simplified approach}
 In this paper, we introduce a new method to address the call/return mismatch problem.
-In terms of implementation, this method is as simple as writing concrete interpreters in CESK machine style.
+In terms of implementation, this method is as simple as writing concrete interpreters in CESK machine style~\cite{felleisen1987calculus}.
 It provides perfect call/return matching for monovariant and polyvariant control flow analysis.
 Since this method records \emph{program execution histories} through the abstract interpretation process and uses it to encode continuation addresses, we name it \textit{h}-CFA\@.
-The program execution history can be regarded as call strings with automatically determined length.
+The program execution history can be regarded as call-strings with automatically determined length.
 For non-recursive calls, the execution history always provides enough context information, no matter how deep the call sequence is.
-Moreover, the history automatically stops growth for recursive calls while the worklist algorithm is responsible
-for finding the fixed-point of recursive computation.
+Moreover, the history automatically stops growth for recursive calls while the worklist iteration (Section~\ref{subs:Abstracting Abstract Machine}) is responsible for finding the fixed-point of recursive computation.
 
 \paragraph{Application}
 To verify the practicability of our theory, we implemented a static analyzer for a subset of JavaScript (ECMAScript 3) in Scala, and we call it JsCFA\@.
-JsCFA not only focuses on pushdown CFA but also adopts other techniques to improve analysis precision for real word programs.
-Although JsCFA usually computes monovariant control flow facts, monovariant analysis incurs critical imprecision for realistic programs and libraries that are written in dynamic higher-order languages.
-For example, even abstract interpreters can perfectly match call/return flows, monovariant or polyvariant analysis without enough context information may also generate spurious data flows from false environments, which is referred to as \emph{environment problem}~\cite{shivers1991control}.
+JsCFA not only uses pushdown CFA but also adopts other techniques to improve analysis precision for real-world programs.
+JsCFA usually computes monovariant control-flow facts that incurs critical imprecision for realistic programs and libraries that are written in dynamic higher-order languages.
+For example, even the abstract interpreter can perfectly match call/return flows, monovariant or polyvariant analysis without enough context information may also generate spurious data flows from false environments, which is referred to as \emph{environment problem}~\cite{shivers1991control, might2007environment}.
+To illustrate this problem, consider the analyzing process of Figure~\ref{fig:eg1} again: assuming the analyzer always matches return flows with correct call sites, which function \verb|id| called by call site 1 only returns to \verb|a| and call site 2 only returns to \verb|b|.
+Variable \verb|a| will get abstract value \verb|{1}|, but \verb|{1, #t}| flows into variable \verb|b| because the local variable \verb|x| retains the value from call site 1 during abstractly interpreting call site 2.
+This spurious data flow injures the practicability of pushdown CFA and causes other control flow problems (see details in Section~\ref{sub:filtering}).
 We solved this problem by introducing abstract garbage collection~\cite{might2006improving} on the value store into JsCFA\@.
 Meanwhile, we also applied abstract GC on the continuation store, which indirectly implements \textit{h}-CFA without recording program execution histories.
 Finally, a benchmark test is provided to show the practicability of \textit{h}-CFA\@.
 
 \paragraph{Outline}
 In the rest of the thesis,
-Section~\ref{sec:Related} describes the state-of-art techniques of CFA, which tend to improve the precision and reduce the overhead of \textit{k}-CFA\@. It mostly discusses existing pushdown approaches.
-Section~\ref{sec:PushdownAAM} presents abstracting abstract machine in detail, including abstract syntax, semantics of abstract machine,
-and store widening.
-This section provides necessary preliminary knowledge to help readers understand our techniques because \textit{h}-CFA is also developed in AAM framework.
+Section~\ref{sec:Related} describes the state-of-art techniques for CFA, which tend to improve the precision and reduce the overhead of \textit{k}-CFA\@. It also discusses existing pushdown approaches.
+Section~\ref{sec:PushdownAAM} presents the abstracting abstract machine (AAM) technique in detail, including abstract syntax, semantics of the abstract machine, and store widening.
+This section provides necessary preliminary knowledge to help readers understand our techniques because \textit{h}-CFA is also developed in the AAM framework.
 Moreover, it summarizes advantages and disadvantages of AAM and reveals an essential drawback that introduces spurious return flows.
-Section~\ref{sec:hcfa} formalizes \textit{h}-CFA and explain how it works with a simple example.
+Section~\ref{sec:hcfa} formalizes \textit{h}-CFA and explains how it works with a simple example.
 Meanwhile, we compare our technique with other related works in several dimensions and give a performance evaluation via benchmark results.
 Section~\ref{sec:JsCFA} details the design and implementation of JsCFA, which applies our techniques in a JavaScript static analyzer.
-This implementation not only focuses on pushdown CFA, but also adopts techniques
+This implementation not only uses pushdown CFA, but also adopts techniques
 such as abstract garbage collection.
-Then we describe an approach for implementing \textit{h}-CFA without recording the program execution history.
+Then we describe an approach for implementing \textit{h}-CFA without recording the program execution history, which simplifies the intermediate representation and semantics of JsCFA\@.
 At the end of this section, a benchmark test of JsCFA is provided.
 Finally, we list several potential approaches for improving \textit{h}-CFA and JsCFA in Section~\ref{sec:Future}, and Section~\ref{sec:Conclude} concludes.
 
@@ -187,13 +213,13 @@ In order to address the precision problem of original \textit{k}-CFA, many techn
 Some algorithms tend to find better contexts for context-sensitive (polyvariant) analysis.
 For example, call-site sensitivity~\cite{shivers1991control}, argument sensitivity~\cite{agesen1995cartesian}, object sensitivity~\cite{milanova2005parameterized,smaragdakis2011pick}, and field sensitivity~\cite{lhotak2003scaling} contribute different benefits to precision or performance for different situations.
 Other techniques attempt to improve both monovariant and polyvariant in alternative ways.
-One of the most popular method of this group is pushdown-based CFA (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation. %TODO: cite for pds
+One of the most popular method of this group is pushdown-based CFA (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation.
 Original \textit{k}-CFA algorithm abstracts each program as a finite-state machine
 so that the abstract interpreter is guaranteed to terminate.
 The abstraction of \textit{k}-CFA is only precise for programs with bounded call stacks.
 However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate
 \emph{recursive} control flows.
-Since the abstraction of {\em k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice.
+Since the abstraction of \textit{k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice.
 The first contribution of this paper is a new method for implementing pushdown-based CFA, referred to as \textit{h}-CFA,
 that provides perfect call/return matching.
 Before describing our technique, we discuss the existing algorithms for the pushdown CFA and
@@ -207,7 +233,7 @@ PDCFA (pushdown control flow analysis~\cite{earl2010pushdown})
 is another strategy that approximates unbounded stack model to be computable.
 PDCFA analyzes programs in a \emph{Dyck state graph}, and tracks all of the reachable states in the graph.
 Meanwhile, edges of the Dyck state graph that connect program states are annotated with stack actions (push, pop, and no action).
-These stack actions explicitly represent a pushdown system and summarize recursive structures (cyclic push or pop edges) of the graph.
+These stack actions explicitly represent a pushdown system and summarize recursive structures of the graph.
 Both of CFA2 and PDCFA introduce extra semantics for target languages, which makes the abstract interpreter hard to implement.
 Fortunately, Van Horn and Might
 invented Abstracting Abstract Machine (AAM)~\cite{van2010abstracting}
@@ -228,21 +254,6 @@ In other words, AAC and P4F just modify the continuation-allocation function of 
 However, AAC has high asymptotic upper bound $O(n^9)$ and converges slowly in practice. %% TODO: citation
 P4F has better performance in polyvariant analysis but it has limited call/return matching strength
 and is not useful for monovariant analysis.
-
-\iffalse
-\section{Static Analysis for JavaScript}
-\label{sub:Static Analysis for JavaScript}
-Besides, we have developed a control flow analyzer for JavaScript based on our \textit{h}-CFA approach, which is named JsCFA\@.
-As one of the most popular programming language, JavaScript intensively uses first-class functions in almost every program.
-For example, methods, constructors, modules, and asynchronous I/O of JavaScript are all dependent on first-class function.
-Hence, good control flow analysis is very important for JavaScript static analysis, especially inter-procedural analysis.
-
-Consequently, when we design JsCFA, we try to do our best to provide control flow facts as precisely as possible.
-First of all, \textit{h}-CFA is applied in JsCFA to perfectly match call/return flows by an indirect approach, which avoids recording the program execution history along abstract interpretation and ANF transformation before analysis.
-Additionally, JsCFA adopts a technique like stack filtering of CFA2 that eliminates most defects of monovariant analysis, and this amendment cooperates with exact call/return flows in abstract interpretation to yield more precise analysis and better performance.
-Meanwhile, we retain a configurable interface to obtain context-sensitive strength for certain necessary situations.
-JsCFA applies the interface to resolve the imprecision of runtime extending object analysis. Finally, we quantitatively evaluate the performance of JsCFA via SunSpider benchmark suit~\cite{sunspider}.
-\fi
 
 \chapter{Pushdown CFA in AAM}
 \label{sec:PushdownAAM}
@@ -519,7 +530,7 @@ Eventually, the time complexity of AAM is $O(n^3)$ in monovariance.
 \section{A Defect of AAM}
 \label{sub:Defect}
 Although, AAM imports store-allocated values and store-allocated continuations that make call/return matching orthogonal from context-sensitivity, $\widetilde{kalloc}$ (continuation address allocating strategy) cannot depend upon context information to implement limited call/return matching (like \textit{k}-CFA does).
-P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{alloc}$:
+P4F attempts to narrow the gap between original \textit{k}-CFA and AAM, so it defines the very simple $\widetilde{kalloc_{P4F}}$:
 \[
 \widetilde{kalloc_{P4F}} ((e, \tilde{\rho}, \tilde{\sigma}, \tilde{\sigma}_k, \tilde{a}_k), e\textprime, \tilde{\rho}\textprime, \tilde{\sigma}\textprime) = (e\textprime, \tilde{\rho}\textprime)
 \]
@@ -593,7 +604,7 @@ Data types and notations of CESK$^H$ are defined below. We changed parts of CESK
 \]
 In ANF programs, environment naturally maintains intra-procedural execution history because ANF explicitly extracts intra-procedural control flows in let-bindings and saves each intermediate result in a local variable.
 Consequently, the program execution histories can be implemented as propagating environments by $\widetilde{History}$ field of CESK$^H$ machine states.
-We consider execution histories as call strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, program execution histories can automatically stop growing for recursive calls, and the worklist algorithm will be responsible for finding the fixed-point of recursive computation.
+We consider execution histories as call-strings with automatically determined length. For non-recursive calls, execution history always provides enough precise context information, no matter how deep the call sequences. On the other hand, program execution histories can automatically stop growing for recursive calls, and the worklist algorithm will be responsible for finding the fixed-point of recursive computation.
 
 The following definitions describe the abstract semantics of CESK$^H$ machine.
 
@@ -1541,7 +1552,7 @@ To solve this problem, CFA2 invented an approach named ``stack filtering'', whic
 However, stack filtering has two limitations so that it cannot be ported to AAM\@. On one hand, AAM adopts reference model for all of the values (all things in stores), but CFA2 has stack allocated values.
 On the other hand, we cannot always pop stack frames after a function call returns because continuation stores may become graphs that contain cycles rather than stacks (see Section~\ref{sub:Polyvariant Continuation}).
 
-Introspective pushdown control flow analysis~\cite{earl2012introspective} described by Earl, Sergey, Might, and Van Horn integrates abstract garbage collection~\cite{might2006improving} in PDCFA to implement stack filtering.
+Earl et al.\ described introspective pushdown control flow analysis in~\cite{earl2012introspective} that integrates abstract garbage collection~\cite{might2006improving} in PDCFA to implement stack filtering.
 JsCFA also adopts this strategy to improve analysis precision and makes call/return matching more useful.
 The semantics of abstract garbage collection is the same as its counterparts in concrete interpreters.
 We first scan the current state to acquire the root set and trace from the root set to reach all the objects' fields and closures' non-local variables. Each address reached in the last phase (computing root set and tracing) is recorded in a ``mark set'', and values referred by the addresses that do not appear in the mark set are regarded as garbage.
