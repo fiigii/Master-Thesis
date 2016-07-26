@@ -12,7 +12,7 @@
 \usepackage{courier}
 \usepackage{tikz}
 \usepackage{pgfplots}
-\pgfplotsset{width=6cm,compat=newest}
+
 
 \algorithmspagefalse
 
@@ -51,10 +51,12 @@
   In control flow analysis (CFA), call/return mismatch is a problem that reduces analysis precision.
   So-called \textit{k}-CFA uses bounded call-strings to obtain limited call/return matching, but it has a serious performance problem
   due to its coupling of call/return matching with context-sensitivity of values.
+  CFA2 and PDCFA are the first two algorithms that bring pushdown (context-free reachability) approach to the CFA area, which provide perfect call/return mathcing.
+  However, CFA2 and PDCFA both need significant engineering effort to implement.
   The abstracting abstract machine (AAM), a configurable framework for constructing abstract interpreters,
-  introduces store-allocated continuations that make the soundness of abstract interpreters easily obtainable.
+  introduces store-allocated continuations that make the soundness of abstract interpreters easily obtainable. \pagebreak
   Recently, two related approaches (AAC and P4F) provide call/return matching using AAM by modeling the call-stack as a pushdown system.
-  However, AAC incurs high overhead and is hard to understand, while P4F cannot compute monovariant analysis. \pagebreak
+  However, AAC incurs high overhead and is hard to understand, while P4F cannot compute monovariant analysis.
   To overcome the above shortcomings, we developed a new method, \textit{h}-CFA, to address the call/return mismatch problem.
   \textit{h}-CFA records the program execution history during abstract interpretation and uses it to avoid control flow merging that causes call/return mismatch.
   Our method uses AAM and is very easy to implement for ANF style program.
@@ -78,9 +80,11 @@
 %\section{Control Flow Analysis}
 %\label{sub:CFA}
 Dynamic programming languages, such as JavaScript, Python, and Ruby, play a significant role in computing areas, such as system management, web development, and scientific computing.
-However, certain features of these languages (e.g.\ duck-typing, first-class functions, and highly dynamic object models) make static error detection difficult.
+Therefore, developers who are using these languages increasingly demand tools for improving code quality, such as security auditing, error- checking, debugging, refactoring, and more.
+However, certain features of dynamic languages (e.g.\ duck-typing, first-class functions, and highly dynamic object models) make achieving these requirements difficult.
+For example, static programming languages are able to report certain semantic errors before executing programs, but in dynamic languages all the semantic errors just can be found during runtime, which is too risky for large-scale commercial software.
 To this end, control flow analysis~\cite{midtgaard2012control}
- (CFA) has been used to detect deep semantic defects before the actual running of programs written in dynamic languages.
+ (CFA) has been used to detect deep semantic information before the actual running of programs written in dynamic languages.
 
 CFA is a class of algorithms that give conservative approximation to inter-procedural information of programs
 before running them.
@@ -122,7 +126,7 @@ Call-strings with length of \textit{k} record latest \textit{k} call sites, whic
 %\section{Problems of CFA}
 %\label{sub:}
 \paragraph{Problems of CFA}
-The 0-CFA and \textit{k}-CFA without enough context information is imprecise for realistic programs.
+The 0-CFA and \textit{k}-CFA without enough context information are imprecise for realistic programs.
 For example, call/return mismatch is always a problem in \textit{k}-CFA that dramatically reduces the precision of analysis.
 Consider the trivial example in Figure~\ref{fig:eg1}, where, in 0-CFA, the \verb|id| function is called twice and \verb|#t| eventually flows into variable \verb|a| because there is a spurious flow from call site
 \verb|(id #t)| to \verb|(id 1)|.
@@ -168,8 +172,8 @@ There is a family of algorithms that attempt to perfectly match return flows wit
 CFA2~\cite{vardoulakis2010cfa2} is the first attempt that brings precise call/return matching to monovariant analysis in exponential time complexity.
 Because monovariant analysis still merges too many data flows even if it has accurate inter-procedural control flows, CFA2 introduces \emph{stack filtering} to eliminate the imprecision of local variables.
 Additionally, there are other three approaches (PDCFA~\cite{earl2010pushdown}, AAC~\cite{johnson2015abstracting}, and P4F~\cite{gilray2016pushdown}) that provide accurate call/return matching by modeling the call-stack as a pushdown system.
-However, PDCFA also needs significant engineering effort to implement~\cite{gilray2016pushdown}.
-AAC and P4F is easy to implement in the abstracting abstract machine (AAM)~\cite{van2010abstracting} framework, but AAC incurs high overhead (Section~\ref{}) and is difficult to understand while P4F cannot compute monovariant analysis and just has limited call/return matching strength.
+However, PDCFA and CFA2 need significant engineering effort to implement~\cite{gilray2016pushdown}.
+AAC and P4F is easy to implement in the abstracting abstract machine (AAM)~\cite{van2010abstracting} framework, but AAC incurs high overhead (see Section~\ref{sec:Related} and Section~\ref{sub:swh}) and is difficult to understand while P4F cannot compute monovariant analysis and just has limited call/return matching strength.
 
 \paragraph{A simplified approach}
 In this paper, we introduce a new method to address the call/return mismatch problem.
@@ -189,6 +193,7 @@ To illustrate this problem, consider the analyzing process of Figure~\ref{fig:eg
 Variable \verb|a| will get abstract value \verb|{1}|, but \verb|{1, #t}| flows into variable \verb|b| because the local variable \verb|x| retains the value from call site 1 during abstractly interpreting call site 2.
 This spurious data flow injures the practicability of pushdown CFA and causes other control flow problems (see details in Section~\ref{sub:filtering}).
 We solved this problem by introducing abstract garbage collection~\cite{might2006improving} on the value store into JsCFA\@.
+JsCFA works with abstract GC to remove those local bindings that pollute subsequent data flows, but abstract GC collaborating with \textit{k}-CFA is not safe~\cite{might2006improving}.
 Meanwhile, we also applied abstract GC on the continuation store, which indirectly implements \textit{h}-CFA without recording program execution histories.
 Finally, a benchmark test is provided to show the practicability of \textit{h}-CFA\@.
 
@@ -251,7 +256,7 @@ Additionally, implementing static analyzer in AAM style is as easy as writing co
 AAC (Abstracting Abstract Control~\cite{johnson2015abstracting}) and P4F (pushdown control flow analysis for free~\cite{gilray2016pushdown})
 are both pushdown CFA techniques based on AAM\@, which convert the call/return matching problem to continuation-address allocation strategy.
 In other words, AAC and P4F just modify the continuation-allocation function of AAM to acquire call/return matching.
-However, AAC has high asymptotic upper bound $O(n^9)$ and converges slowly in practice. %% TODO: citation
+However, AAC has high asymptotic upper bound $O(n^9)$ in monovariance (this complexity is claimed in~\cite{gilray2016pushdown} that cites to an unpublished article) and converges slowly in practice (see Section~\ref{sub:swh}).
 P4F has better performance in polyvariant analysis but it has limited call/return matching strength
 and is not useful for monovariant analysis.
 
@@ -827,6 +832,7 @@ However, in realistic analyzers, functional data structures usually incurs consi
 
 \begin{figure}
   \centering
+  \pgfplotsset{width=6cm,compat=newest}
 \minipage{0.48\textwidth}
 \begin{tikzpicture}
   \small
@@ -846,12 +852,12 @@ However, in realistic analyzers, functional data structures usually incurs consi
      (ack, 139) (cpstak, 109) (tak,379) (fib,206) (empty,0)};
 \addplot
 coordinates {(mj09,37) (eta,22)
-   (kcfa2,81) (kcfa3,168) (blur,197) (loop2,71) (sat, 577)
+   (kcfa2,81) (kcfa3,168) (blur,197) (loop2,71) (sat, 548)
    (ack, 86) (cpstak,98) (tak,239) (fib,108) (empty,0)};
 \legend{AAC,\textit{h}-CFA}
 \end{axis}
 \end{tikzpicture}
-\caption{monovariant analysis comparison}
+\caption{Monovariant analysis performance comparison}
 \label{0-benchmark}
 \endminipage\hfill
 \minipage{0.48\textwidth}
@@ -878,36 +884,96 @@ coordinates {(mj09,28) (eta,16)
 \legend{AAC,\textit{h}-CFA}
 \end{axis}
 \end{tikzpicture}
-\caption{1-call-site sensitive analysis comparison}
+\caption{1-call-site sensitive analysis performance comparison}
 \label{1-benchmark}
 \endminipage\hfill
 \end{figure}
-To illustrate the call/return matching strength of P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
+
+Furthermore, we compared the call/return matching precision of several CFA algorithms in AAM, including \textit{k}-CFA-like, P4F, AAC, and  \textit{h}-CFA\@.
+Figure~\ref{0-precision} shows percentages of mismatching returns in monovariant analysis, where mismatching return states retrieve several different return points from their continuation address.
+These different return points immediately produce spurious return flows, so the statistic data can represent the precision of call/return matching.
+This figure indicate that \textit{h}-CFA has no any mismatch on all the programs (mismatching return percentages are 0\%), and P4F does not benefit to monovariant analysis due to its precision always same with 0-CFA-like analysis.
+Figure~\ref{1-precision} provides the comparison on 1-call-site sensitive analysis, and \textit{h}-CFA is also the most accurate solution.
+
+\begin{figure}
+  \center
+  \begin{tikzpicture}
+    \small
+  \begin{axis}[
+  	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
+    xtick=data,
+  	ylabel=Percentage of Mismatching Returns,
+    yticklabel=\pgfmathparse{\tick}\pgfmathprintnumber{\pgfmathresult}\,\%,
+  	enlargelimits=0.05,
+  	legend style={at={(0.5,-0.25)},
+  	anchor=north,legend columns=-1},
+  	ybar interval=0.6,
+    x tick label style={rotate=90},
+  ]
+  \addplot
+  coordinates {(mj09,37.5) (eta,13.3)
+     (kcfa2,85.7) (kcfa3,85.7) (blur,86.7) (loop2,0) (sat, 0)
+     (ack, 0) (cpstak, 0) (tak,75) (fib,90) (empty,0)};
+  \addplot
+  	coordinates {(mj09,37.5) (eta,13.3)
+  		 (kcfa2,85.7) (kcfa3,85.7) (blur,86.7) (loop2,0) (sat, 0)
+       (ack, 0) (cpstak, 0) (tak,75) (fib,90) (empty,0)};
+  \addplot
+  	coordinates {(mj09,5.6) (eta,0)
+  		 (kcfa2,23) (kcfa3,25) (blur,15.5) (loop2,0) (sat, 0)
+       (ack, 0) (cpstak, 0) (tak,30.7) (fib,0) (empty,0)};
+  \addplot
+  coordinates {(mj09,0) (eta,0)
+     (kcfa2,0) (kcfa3,0) (blur,0) (loop2,0) (sat, 0)
+     (ack, 0) (cpstak,0) (tak,0) (fib,0) (empty,0)};
+  \legend{\textit{k}-CFA-like, P4F, AAC,\textit{h}-CFA}
+  \end{axis}
+  \end{tikzpicture}
+  \caption{Monovariant analysis precision comparison}
+  \label{0-precision}
+\end{figure}
+
+\begin{figure}
+  \center
+  \begin{tikzpicture}
+    \small
+  \begin{axis}[
+  	symbolic x coords={mj09,eta,kcfa2,kcfa3,blur,loop2,sat,ack,cpstak,tak,fib,empty},
+    xtick=data,
+  	ylabel=Percentage of Mismatching Return,
+    yticklabel=\pgfmathparse{\tick}\pgfmathprintnumber{\pgfmathresult}\,\%,
+  	enlargelimits=0.05,
+  	legend style={at={(0.5,-0.25)},
+  	anchor=north,legend columns=-1},
+  	ybar interval=0.6,
+    x tick label style={rotate=90},
+  ]
+  \addplot
+  coordinates {(mj09,26.1) (eta,20)
+     (kcfa2,98.9) (kcfa3,99.3) (blur,96.1) (loop2,0) (sat, 0)
+     (ack, 0) (cpstak, 0) (tak,98.2) (fib,97.6) (empty,0)};
+  \addplot
+  	coordinates {(mj09,16.7) (eta,0)
+  		 (kcfa2,83.9) (kcfa3,91.7) (blur,0) (loop2,0) (sat, 0)
+       (ack, 0) (cpstak, 0) (tak,29.2) (fib,0) (empty,0)};
+  \addplot
+  	coordinates {(mj09,0) (eta,0)
+  		 (kcfa2,0) (kcfa3,15.7) (blur,0) (loop2,0) (sat, 0)
+       (ack, 0) (cpstak, 0) (tak,23.2) (fib,0) (empty,0)};
+  \addplot
+  coordinates {(mj09,0) (eta,0)
+     (kcfa2,0) (kcfa3,0) (blur,0) (loop2,0) (sat, 0)
+     (ack, 0) (cpstak,0) (tak,0) (fib,0) (empty,0)};
+  \legend{\textit{k}-CFA-like, P4F, AAC,\textit{h}-CFA}
+  \end{axis}
+  \end{tikzpicture}
+  \caption{1-call-site sensitive analysis percision comparison}
+  \label{1-precision}
+\end{figure}
+
+To visually illustrate the call/return matching strength of P4F, PDCFA, PDCFA with abstract Garbage Collection (GC), and \textit{h}-CFA, we have
 implemented them for Scheme language. We ran the four algorithms on a small program that is similar to the program showed in Figure~\ref{fig:anf-fib}.
 The resulting state-transition graphs are shown in Figure~\ref{fig:state-graphs}.
-
-\iffalse
-\begin{figure}
-  \small
-  \lstset{language=Lisp, keywords={define}}
-  \begin{lstlisting}
-  (define (fib n)
-    (if (< n 3)
-        1
-        (+ (fib (- n 1)) (fib (- n 2)))))
-
-  (define a (fib 10))
-  (define b (fib 20))
-  (define c (fib 100))
-  \end{lstlisting}
-\caption{
-This example calls Fibonacci function three times
-and it is used to compare the strength of call/return matching of four pushdown CFA algorithms.
-}
-\label{fig:fib}
-\end{figure}
-\fi
-
 \begin{figure}
 \begin{center}
 \begin{tabular}{ccc}
@@ -958,7 +1024,7 @@ Meanwhile, during exploring \textit{h}-CFA, we become clear with why original \t
 \chapter{Design of JsCFA}
 \label{sec:JsCFA}
 JavaScript has become a ubiquitous computing environment in browsers, severs, desktops, even mobile devices. Developers are attracted by its effective and convenient features, such as duck typing, first-class functions, and runtime changeable objects, etc. However, these flexible features also makes large JavaScript programs to be increasingly unreliable.
-As one of the software engineering tools, static analysis has become an effective choice to help detect deep semantic errors and defects, but the static analysis algorithms in JavaScript is still not comparable to those of the static languages such as Java.
+As one of the software engineering tools, static analysis has become an effective choice to help detect deep semantic information and defects, but the static analysis algorithms in JavaScript is still not comparable to those of the static languages such as Java.
 
 One of the most difficult challenges is that JavaScript is a higher-order programming language that treats functions as first-class values. First-class functions can be referred by variables, passed in function arguments, and emitted as return values of other functions.
 In static analysis of higher-order programming languages, control flow analysis plays a significant role because we often cannot determine which function is called at a specific call site.
@@ -995,7 +1061,7 @@ postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}
   case class BlockStmt(stmts: List[Statement]) extends Statement
   case class VarDeclListStmt(decls: List[Statement]) extends Statement
   case class EmptyStmt() extends Statement
-  case class ExprStmt(expr: Expression) extends Statement()
+  case class ExprStmt(expr: Expression) extends Statement
   case class VarDeclStmt(name: IntroduceVar, expr: Expression) extends Statement
   case class FunctionDecl(name: IntroduceVar, fun: Expression) extends Statement
   case class ReturnStmt(expr: Expression) extends Statement
@@ -1143,7 +1209,7 @@ In this case, we return \verb|undefined| value to the {\em return} point restore
     $\dots$
   }
 \end{lstlisting}
-\caption{Parts of Evaluation Transition Rules for Dispatching and Statements}
+\caption{Parts of evaluation transition rules for dispatching and statements}
 \label{fig:eval}
 \end{figure}
 
@@ -1172,7 +1238,7 @@ case State(InfixExpr(op, e1, e2), env, localStack, a, memory) =>
 $\dots$
 \end{lstlisting}
 \label{fig:eval}
-\caption{Parts of Evaluation Transition Rules for Expressions}
+\caption{Parts of evaluation transition rules for expressions}
 \end{figure}
 
 \textbf{Continuation transition} works on the six components of the state object and an extra \emph{next continuation} (referred to as \verb|cont| in Figure~\ref{fig:cont-stmt} and Figure~\ref{fig:cont-expr}).
@@ -1212,7 +1278,7 @@ as it did for the {\em evaluation transitions}.
         Set(State(k, env, localStack, a, memory))
     $\dots$
 \end{lstlisting}
-\caption{Parts of Continuation Transition Rules for Statements}
+\caption{Parts of continuation transition rules for statements}
 \label{fig:cont-stmt}
 \end{figure}
 
@@ -1267,7 +1333,7 @@ basicstyle=\scriptsize\ttfamily}
     $\dots$
   }
 \end{lstlisting}
-\caption{Parts of Continuation Transition Rules for Expressions}
+\caption{Parts of continuation transition rules for expressions}
 \label{fig:cont-expr}
 \end{figure}
 
@@ -1315,7 +1381,7 @@ def transitApplication(state: State): Set[State] = state match {
   $\dots$
 
 \end{lstlisting}
-\caption{Parts of Application Transition Rules for Statements}
+\caption{Parts of application transition rules for statements}
 \label{fig:app-stmt}
 \end{figure}
 
@@ -1370,7 +1436,7 @@ basicstyle=\scriptsize\ttfamily}
   $\dots$
 }
 \end{lstlisting}
-\caption{Parts of Application Transition Rules for Expressions}
+\caption{Parts of application transition rules for expressions}
 \label{fig:app-expr}
 \end{figure}
 
@@ -1473,7 +1539,7 @@ case State(KFuncCallComplete(funcRef, args),
     }
 
   \end{lstlisting}
-  \caption{Application Transition Rule for Global Function Calls}
+  \caption{Application transition rule for global function calls}
 \label{fig:app-call}
 \end{figure}
 
@@ -1726,11 +1792,13 @@ Therefore, the control flow can only go back to the return point \verb|b| throug
 
 Using abstract garbage collection, JsCFA can realize perfect call-return matching by analyzing programs without ANF transformation.
 
-\section{Performance Evaluation}
+\section{Evaluation}
 \label{sub:Performance Evaluation}
 JsCFA is written in Scala and executed with Scala 2.11.
 We tested its performance on a personal computer that is equipped with Intel Core i7 (2.3 GHz), 16GB RAM with OSX operating system.
 This performance evaluation was based on SunSpider benchmark suit~\cite{sunspider} and the result is shown in Figure~\ref{jscfa-benchmark}.
+We also collected the statistics of mismatching returns (see Section~\ref{sub:swh}), which shows JsCFA has no any spurious return flows on these test programs.
+
 \begin{figure}
   \centering
   \begin{tikzpicture}
@@ -1752,7 +1820,7 @@ This performance evaluation was based on SunSpider benchmark suit~\cite{sunspide
        (crypto-sha1, 5867) (string-fasta, 3235) (math-spectral-norm,3808) (math-partial-sums,306) (empty,0)};
   \end{axis}
   \end{tikzpicture}
-  \caption{JsCFA Benchmarks}
+  \caption{JsCFA benchmarks}
   \label{jscfa-benchmark}
 \end{figure}
 
