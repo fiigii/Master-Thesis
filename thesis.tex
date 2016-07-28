@@ -219,10 +219,10 @@ Some algorithms tend to find better contexts for context-sensitive (polyvariant)
 For example, call-site sensitivity~\cite{shivers1991control}, argument sensitivity~\cite{agesen1995cartesian}, object sensitivity~\cite{milanova2005parameterized,smaragdakis2011pick}, and field sensitivity~\cite{lhotak2003scaling} contribute different benefits to precision or performance for different situations.
 Other techniques attempt to improve both monovariant and polyvariant in alternative ways.
 One of the most popular method of this group is pushdown-based CFA (a.k.a.\ context-free language reachability), which introduces pushdown system into abstract interpretation.
-Original \textit{k}-CFA algorithm abstracts each program as a finite-state machine
+The original \textit{k}-CFA algorithm abstracts each program as a finite-state machine
 so that the abstract interpreter is guaranteed to terminate.
 The abstraction of \textit{k}-CFA is only precise for programs with bounded call stacks.
-However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) generate
+However, many language constructs (i.e.\ function invocation, exception handling, and first-class continuation, etc.) can generate
 \emph{recursive} control flows.
 Since the abstraction of \textit{k}-CFA is not precise for recursive structures, pushdown-based CFA is a better choice.
 The first contribution of this paper is a new method for implementing pushdown-based CFA, referred to as \textit{h}-CFA,
@@ -231,30 +231,30 @@ Before describing our technique, we discuss the existing algorithms for the push
 preliminary knowledge of \textit{h}-CFA\@.
 
 \paragraph{Pushdown CFA Algorithms}
-The core idea of pushdown CFA is to mimic function call/return as an unbounded call stack for ordinary calls and summarizing call stacks to finite height for recursive calls because unbounded call stack is not computable in static analysis.
-CFA2~\cite{vardoulakis2010cfa2} is the first algorithm that employs pushdown system into CFA\@.
+The core idea of pushdown CFA is to mimic function call/return as an unbounded call stack for ordinary calls and summarizing call stacks to finite height for recursive calls because an unbounded call stack is not computable in static analysis.
+CFA2~\cite{vardoulakis2010cfa2} is the first algorithm that employs a pushdown system for CFA\@.
 CFA2 models the call stack as an implicit pushdown system, and summarizes the call stack with a tabulation algorithm for recursive functions.
 PDCFA (pushdown control flow analysis~\cite{earl2010pushdown})
 is another strategy that approximates unbounded stack model to be computable.
-PDCFA analyzes programs in a \emph{Dyck state graph}, and tracks all of the reachable states in the graph.
+PDCFA analyzes programs using a \emph{Dyck state graph}~\cite{earl2010pushdown}, and tracks all of the reachable states in the graph.
 Meanwhile, edges of the Dyck state graph that connect program states are annotated with stack actions (push, pop, and no action).
 These stack actions explicitly represent a pushdown system and summarize recursive structures of the graph.
-Both of CFA2 and PDCFA introduce extra semantics for target languages, which makes the abstract interpreter hard to implement.
-Fortunately, Van Horn and Might
-invented Abstracting Abstract Machine (AAM)~\cite{van2010abstracting}
+Both CFA2 and PDCFA introduce extra semantics for target languages, which makes the abstract interpreter hard to implement.
+For this drawback, Van Horn and Might
+invented the Abstracting Abstract Machine (AAM)~\cite{reps1995precise, van2010abstracting}
 as a configurable framework for constructing abstract interpreters in the CESK abstract machine~\cite{felleisen1987calculus} style.
-Since AAM not only allocates values in the store (like the original \textit{k}-CFA does), but also represents control flow as store-allocated continuations.
-In AAM, each CESK state does not directly carry any continuation, but a continuation address that refers to a set of continuations in the store.
+Since AAM not only allocates values in the store (as the original \textit{k}-CFA does), but also represents control flow using store-allocated continuations.
+In AAM, each CESK state does not directly carry any continuation, but a continuation address that refers to a set of concrete continuations.
 Merging several continuations in one continuation address achieves the effect of approximating control flows.
 Meanwhile, AAM brings two benefits to control flow analysis.
-On the one hand, it makes the soundness of abstract interpreters easily acquired because values and continuations are both in the store and
+On the one hand, it makes the soundness of abstract interpreters easily prove because values and continuations are both in the store and
 the store size is fixed.
 Hence, the number of machine states that abstract interpreters generate is always finite.
-On the other hand, store-allocated continuation separates the original context-sensitivity (polyvariant values) strategies from
-the call/return matching techniques.
-Additionally, implementing static analyzer in AAM style is as easy as writing concrete interpreters.
+On the other hand, store-allocated continuations separate the context-sensitivity (polyvariance) strategy from
+the call/return matching technique.
+Additionally, implementing a static analyzer in AAM style is as easy as writing concrete interpreters.
 AAC (Abstracting Abstract Control~\cite{johnson2015abstracting}) and P4F (pushdown control flow analysis for free~\cite{gilray2016pushdown})
-are both pushdown CFA techniques based on AAM\@, which convert the call/return matching problem to continuation-address allocation strategy.
+are both pushdown CFA techniques based on AAM\@, which convert the call/return matching problem to a continuation-address allocation problem.
 In other words, AAC and P4F just modify the continuation-allocation function of AAM to acquire call/return matching.
 However, AAC has high asymptotic upper bound $O(n^9)$ in monovariance (this complexity is claimed in~\cite{gilray2016pushdown} that cites to an unpublished article) and converges slowly in practice (see Section~\ref{sub:swh}).
 P4F has better performance in polyvariant analysis but it has limited call/return matching strength
@@ -892,7 +892,7 @@ coordinates {(mj09,28) (eta,16)
 Furthermore, we compared the call/return matching precision of several CFA algorithms in AAM, including \textit{k}-CFA-like, P4F, AAC, and  \textit{h}-CFA\@.
 Figure~\ref{0-precision} shows percentages of mismatching returns in monovariant analysis, where mismatching return states retrieve several different return points from their continuation address.
 These different return points immediately produce spurious return flows, so the statistic data can represent the precision of call/return matching.
-This figure indicate that \textit{h}-CFA has no any mismatch on all the programs (mismatching return percentages are 0\%), and P4F does not benefit to monovariant analysis due to its precision always same with 0-CFA-like analysis.
+This figure indicate that \textit{h}-CFA does not have any mismatch return flows on all the programs (mismatching return percentages are 0\%), and P4F does not benefit to monovariant analysis due to its precision always same with 0-CFA-like analysis.
 Figure~\ref{1-precision} provides the comparison on 1-call-site sensitive analysis, and \textit{h}-CFA is also the most accurate solution.
 
 \begin{figure}
